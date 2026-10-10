@@ -212,6 +212,17 @@ export function Cashier() {
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
   const groups = useMemo(() => groupByBarcode(allProducts), [allProducts]);
+  const visibleGroups = useMemo(() => {
+    const q = buffer.trim().toLowerCase();
+    if (!q || !/[a-z]/.test(q)) return groups;
+    return groups.filter(
+      (g) =>
+        g.name.toLowerCase().includes(q) ||
+        g.size.toLowerCase().includes(q) ||
+        g.barcode.includes(q) ||
+        g.items.some((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)),
+    );
+  }, [groups, buffer]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
@@ -325,7 +336,8 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {groups.map((g) => (
+          {visibleGroups.length === 0 && <p className="muted">No items match "{buffer}".</p>}
+          {visibleGroups.map((g) => (
             <button
               key={g.barcode}
               className={`cashier-item category-${g.category.toLowerCase()}`}
