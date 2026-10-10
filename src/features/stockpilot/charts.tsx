@@ -8,17 +8,25 @@ import {
   Layers,
 } from "lucide-react";
 import { money, trendColor, type Product } from "./model";
-import { chartDate, dailyChartData, type DailyChartPoint } from "./chart-data";
+import {
+  chartPeriods,
+  chartPeriodLabel,
+  periodChartData,
+  type ChartPeriod,
+  type PeriodChartPoint,
+} from "./chart-data";
+import { Button } from "@/components/ui/button";
 
-const months = ["May", "Jun", "Jul", "Aug", "Sep", "Oct"];
 type Metric = "stock" | "value" | "received";
 function TrendChart({
   points,
   metric,
   active,
   onActive,
+  period,
 }: {
-  points: DailyChartPoint[];
+  points: PeriodChartPoint[];
+  period: ChartPeriod;
   metric: Metric;
   active: number | null;
   onActive: (index: number | null) => void;
@@ -31,7 +39,14 @@ function TrendChart({
       ...points.map((point) => point[metric]),
       ...(bars ? points.map((point) => point.sold) : []),
     ) * 1.18;
-  const x = (index: number) => 36 + (index / Math.max(1, points.length - 1)) * 272;
+  const slot = 272 / Math.max(1, points.length);
+  const barWidth = Math.min(14, slot * 0.34);
+  const x = (index: number) =>
+    bars
+      ? 36 + slot * (index + 0.5)
+      : points.length === 1
+        ? 172
+        : 36 + (index / (points.length - 1)) * 272;
   const y = (value: number) => 158 - (value / max) * 132;
   const selected = active === null ? undefined : points[active];
   const format = (value: number) => (metric === "value" ? money(value) : `${value} units`);
@@ -42,7 +57,7 @@ function TrendChart({
         className="trend-chart"
         role="img"
         tabIndex={0}
-        aria-label={`${bars ? "Daily received and sold" : metric === "stock" ? "Daily stock levels" : "Daily inventory value"}; May 1 to October 10, 2026. Illustrative demo values. Use arrow keys to inspect dates.`}
+        aria-label={`${period} ${bars ? "received and sold" : metric === "stock" ? "stock levels" : "inventory value"}; available 2026 demo history. Illustrative demo values. Use arrow keys to inspect dates.`}
         onPointerMove={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect();
           const position = ((event.clientX - bounds.left) / bounds.width) * 324;
@@ -51,7 +66,9 @@ function TrendChart({
               0,
               Math.min(
                 points.length - 1,
-                Math.round(((position - 36) / 272) * (points.length - 1)),
+                bars
+                  ? Math.floor((position - 36) / slot)
+                  : Math.round(((position - 36) / 272) * (points.length - 1)),
               ),
             ),
           );
@@ -110,21 +127,21 @@ function TrendChart({
               {bars ? (
                 <>
                   <rect
-                    x={x(index) - 0.65}
+                    x={x(index) - barWidth - 1}
                     y={y(point.received)}
-                    width=".85"
+                    width={barWidth}
                     height={158 - y(point.received)}
-                    rx=".4"
+                    rx={Math.min(2, barWidth / 2)}
                     fill={
                       previous ? trendColor(previous.received, point.received) : "var(--primary)"
                     }
                   />
                   <rect
-                    x={x(index) + 0.3}
+                    x={x(index) + 1}
                     y={y(point.sold)}
-                    width=".85"
+                    width={barWidth}
                     height={158 - y(point.sold)}
-                    rx=".4"
+                    rx={Math.min(2, barWidth / 2)}
                     fill={
                       previous && point.sold < previous.sold
                         ? "var(--destructive)"
@@ -145,9 +162,17 @@ function TrendChart({
                   />
                 )
               )}
-              {point.date.endsWith("-01") && (
+              {!bars && (points.length === 1 || period === "Monthly") && (
+                <circle
+                  cx={x(index)}
+                  cy={y(point[metric])}
+                  r="3.5"
+                  fill={previous ? trendColor(previous[metric], point[metric]) : "var(--primary)"}
+                />
+              )}
+              {(points.length <= 6 || index % Math.ceil(points.length / 5) === 0) && (
                 <text x={x(index)} y="181" textAnchor="middle" className="chart-label">
-                  {months[Number(point.date.slice(5, 7)) - 5]}
+                  {point.label}
                 </text>
               )}
             </g>
@@ -168,12 +193,12 @@ function TrendChart({
           className="chart-tooltip"
           role="tooltip"
           style={{
-            left: `${Math.max(26, Math.min(74, ((active ?? 0) / (points.length - 1)) * 100))}%`,
+            left: `${Math.max(26, Math.min(74, (x(active ?? 0) / 324) * 100))}%`,
           }}
         >
           <div className="chart-tooltip-date">
             <CalendarDays size={12} />
-            {chartDate(selected.date)}
+            {chartPeriodLabel(selected, period)}
           </div>
           {bars ? (
             <>
@@ -198,7 +223,7 @@ function TrendChart({
               <strong>{format(selected[metric])}</strong>
             </div>
           )}
-          <small>Illustrative daily demo</small>
+          <small>Illustrative demo values</small>
         </div>
       )}
     </div>
@@ -206,37 +231,95 @@ function TrendChart({
 }
 export function ProductCharts({ product }: { product: Product }) {
   const [active, setActive] = useState<number | null>(null);
-  const points = dailyChartData(product);
+  const [period, setPeriod] = useState<ChartPeriod>("Monthly");
+  const points = periodChartData(product, period);
+  const first = points[0];
+  const last = points.at(-1);
+  const range =
+    first && last
+      ? `${first.startDate.slice(5).replace("-", "/")} – ${last.date.slice(5).replace("-", "/")}, 2026`
+      : "2026";
   const diff = (product.history[5] ?? product.stock) - (product.history[4] ?? product.stock);
   return (
-    <div className="charts-grid">
-      <ChartBlock
-        title="Stock levels"
-        value={`${product.stock}`}
-        suffix="units on hand"
-        diff={diff}
-        icon={<Package size={14} />}
-      >
-        <TrendChart points={points} metric="stock" active={active} onActive={setActive} />
-      </ChartBlock>
-      <ChartBlock
-        title="Received vs. sold"
-        value={`${product.received[5] ?? 0}`}
-        suffix="received this month"
-        icon={<Layers size={14} />}
-      >
-        <TrendChart points={points} metric="received" active={active} onActive={setActive} />
-      </ChartBlock>
-      <ChartBlock
-        title="Inventory value"
-        value={money(product.stock * product.cost)}
-        suffix="at cost"
-        diff={diff * product.cost}
-        currency
-        icon={<ChartNoAxesCombined size={14} />}
-      >
-        <TrendChart points={points} metric="value" active={active} onActive={setActive} />
-      </ChartBlock>
+    <div className="product-charts">
+      <div className="chart-controls">
+        <span>{period === "Daily" ? "Last 30 days" : "Available history · 2026"}</span>
+        <div
+          role="group"
+          aria-label="Chart interval"
+          className="chart-period-switch"
+        >
+          {chartPeriods.map((option) => (
+            <Button
+              key={option}
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={period === option}
+              data-state={period === option ? "on" : "off"}
+              onClick={() => {
+                setPeriod(option);
+                setActive(null);
+              }}
+            >
+              {option}
+            </Button>
+          ))}
+        </div>
+      </div>
+      <div className="charts-grid">
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Stock levels"
+          value={`${product.stock}`}
+          suffix="units on hand"
+          diff={diff}
+          icon={<Package size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="stock"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Received vs. sold"
+          value={`${product.received[5] ?? 0}`}
+          suffix="received this month"
+          icon={<Layers size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="received"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Inventory value"
+          value={money(product.stock * product.cost)}
+          suffix="at cost"
+          diff={diff * product.cost}
+          currency
+          icon={<ChartNoAxesCombined size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="value"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
+      </div>
     </div>
   );
 }
@@ -248,7 +331,11 @@ function ChartBlock({
   currency,
   children,
   icon,
+  period,
+  range,
 }: {
+  period: ChartPeriod;
+  range: string;
   title: string;
   value: string;
   suffix: string;
@@ -264,7 +351,7 @@ function ChartBlock({
           <span className="chart-icon">{icon}</span>
           {title}
         </h3>
-        <span className="chart-period">6 months</span>
+        <span className="chart-period">{period}</span>
       </div>
       <div className="chart-number">
         {value}
@@ -289,8 +376,8 @@ function ChartBlock({
       )}
       {children}
       <div className="chart-footer">
-        <span>May 1 – Oct 10, 2026</span>
-        <span>Daily · Demo</span>
+        <span>{range}</span>
+        <span>{period === "Yearly" ? "Partial year · Demo" : `${period} · Demo`}</span>
       </div>
     </section>
   );

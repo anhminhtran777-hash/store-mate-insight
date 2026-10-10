@@ -49,3 +49,61 @@ export function chartDate(date: string) {
     timeZone: "UTC",
   }).format(new Date(`${date}T12:00:00Z`));
 }
+
+export const chartPeriods = ["Daily", "Weekly", "Monthly", "Yearly"] as const;
+export type ChartPeriod = (typeof chartPeriods)[number];
+export type PeriodChartPoint = DailyChartPoint & { startDate: string; label: string };
+
+export function periodChartData(product: Product, period: ChartPeriod): PeriodChartPoint[] {
+  const daily = dailyChartData(product);
+  const groups = new Map<string, DailyChartPoint[]>();
+  for (const point of daily) {
+    const date = new Date(`${point.date}T12:00:00Z`);
+    if (period === "Weekly") date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+    const key =
+      period === "Weekly"
+        ? date.toISOString().slice(0, 10)
+        : period === "Monthly"
+          ? point.date.slice(0, 7)
+          : period === "Yearly"
+            ? point.date.slice(0, 4)
+            : point.date;
+    const group = groups.get(key) ?? [];
+    group.push(point);
+    groups.set(key, group);
+  }
+  const points = Array.from(groups.values()).flatMap((group) => {
+    const first = group[0];
+    const last = group.at(-1);
+    if (!first || !last) return [];
+    return [
+      {
+        ...last,
+        startDate: first.date,
+        label:
+          period === "Monthly"
+            ? new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" }).format(
+                new Date(`${last.date}T12:00:00Z`),
+              )
+            : period === "Yearly"
+              ? `${last.date.slice(0, 4)} YTD`
+              : chartDate(first.date).replace(", 2026", ""),
+        received: group.reduce((sum, point) => sum + point.received, 0),
+        sold: group.reduce((sum, point) => sum + point.sold, 0),
+      },
+    ];
+  });
+  return period === "Daily" ? points.slice(-30) : points;
+}
+
+export function chartPeriodLabel(point: PeriodChartPoint, period: ChartPeriod) {
+  if (period === "Daily") return chartDate(point.date);
+  if (period === "Monthly")
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(`${point.date}T12:00:00Z`));
+  if (period === "Yearly") return `${point.date.slice(0, 4)} · May 1 – Oct 10`;
+  return `${chartDate(point.startDate).replace(", 2026", "")} – ${chartDate(point.date)}`;
+}
