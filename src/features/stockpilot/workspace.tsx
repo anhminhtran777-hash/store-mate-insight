@@ -46,7 +46,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useStockPilot } from "./store";
+import { useStock Genie } from "./store";
 import {
   categories,
   isLowStock,
@@ -95,13 +95,13 @@ export function Logo() {
         <Package size={23} strokeWidth={1.8} />
       </span>
       <span>
-        StockPilot<span className="logo-dot">.</span>
+        Stock Genie<span className="logo-dot">.</span>
       </span>
     </div>
   );
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
-  const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
+  const { state, user, storeName, pinned, setPinned, budget } = useStock Genie();
   const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
   const refunds = state.activities
     .filter((a) => a.flow === "refund")
@@ -250,7 +250,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                       : page === "Activity Log"
                         ? "Every change, with a clear trail."
                         : page === "Settings"
-                          ? "Make StockPilot feel like your store."
+                          ? "Make Stock Genie feel like your store."
                           : "Good decisions start with the right insights."}
               </p>
             </div>
@@ -414,7 +414,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               <Leaf size={12} /> A little more control. A lot less guesswork.
             </span>
             <span>
-              StockPilot <span className="footer-separator">/</span> Demo environment
+              Stock Genie <span className="footer-separator">/</span> Demo environment
             </span>
           </footer>
         </main>
@@ -457,7 +457,7 @@ function Metric({
   );
 }
 function ProductRow({ product: p }: { product: Product }) {
-  const { selectedId, select } = useStockPilot();
+  const { selectedId, select } = useStock Genie();
   const Icon = categoryIcons[p.category];
   return (
     <Button
@@ -489,7 +489,7 @@ function ProductDetail({
 }: {
   open: (mode: Exclude<ModalMode, "create" | null>) => void;
 }) {
-  const { state, setState, selectedId, user } = useStockPilot();
+  const { state, setState, selectedId, user } = useStock Genie();
   const p = state.products.find((p) => p.id === selectedId);
   if (!p) return <div className="empty-state">Select a product.</div>;
   const Icon = categoryIcons[p.category];
@@ -702,7 +702,7 @@ function ProductModal({
   mode: ModalMode;
   close: () => void;
 }) {
-  const { state, setState, selectedId, select, user } = useStockPilot();
+  const { state, setState, selectedId, select, user } = useStock Genie();
   const p = state.products.find((p) => p.id === selectedId);
   const [error, setError] = useState("");
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -1011,7 +1011,7 @@ function Field({
   );
 }
 function Orders() {
-  const { state, setState, user } = useStockPilot();
+  const { state, setState, user } = useStock Genie();
   const [tab, setTab] = useState("All orders");
   const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
   const [requestOpen, setRequestOpen] = useState(false);
@@ -1161,7 +1161,7 @@ function Orders() {
   );
 }
 function ActivityTable() {
-  const { state } = useStockPilot();
+  const { state } = useStock Genie();
   const [search, setSearch] = useState("");
   return (
     <section className="data-section">
@@ -1254,7 +1254,7 @@ function ActivityTable() {
   );
 }
 function Dashboard() {
-  const { state } = useStockPilot();
+  const { state } = useStock Genie();
   const low = state.products.filter(isLowStock);
   const first = state.products.find((p) => !p.archived);
   return (
@@ -1310,7 +1310,7 @@ function Dashboard() {
 }
 function StoreSettings() {
   const { storeName, setStoreName, user, setUser, pinned, setPinned, budget, setBudget } =
-    useStockPilot();
+    useStock Genie();
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
@@ -1375,7 +1375,7 @@ function StoreSettings() {
   );
 }
 export function Login() {
-  const { setUser, storeName } = useStockPilot();
+  const { setUser, storeName } = useStock Genie();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1419,7 +1419,7 @@ export function Login() {
             {storeName}
           </span>
           <h2>Welcome back.</h2>
-          <p>Sign in to your StockPilot workspace.</p>
+          <p>Sign in to your Stock Genie workspace.</p>
           <form
             className="product-form"
             onSubmit={(e) => {
@@ -1461,7 +1461,7 @@ export function Login() {
           </form>
           <div className="login-divider">
             <span />
-            or explore StockPilot
+            or explore Stock Genie
             <span />
           </div>
           <Button
@@ -1477,7 +1477,7 @@ export function Login() {
           </Button>
           <p className="login-demo-note">Demo sign-in only. No account required.</p>
         </div>
-        <span className="login-copyright">© 2026 StockPilot. A smarter store starts here.</span>
+        <span className="login-copyright">© 2026 Stock Genie. A smarter store starts here.</span>
       </div>
     </div>
   );
