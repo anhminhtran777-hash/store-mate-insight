@@ -413,12 +413,17 @@ export function findCashierItem(products: Product[], raw: string): Product | "ma
     if (byCode) return byCode;
   }
   const exact = products.find(
-    (p) => p.barcode === query || p.sku.toLowerCase() === lower || p.name.toLowerCase() === lower,
+    (p) =>
+      p.barcode === query ||
+      p.sku.toLowerCase() === lower ||
+      p.name.toLowerCase() === lower ||
+      `${p.name} ${p.size}`.toLowerCase() === lower,
   );
   if (exact) return exact;
   const fuzzy = products.filter(
     (p) =>
       p.name.toLowerCase().includes(lower) ||
+      `${p.name} ${p.size}`.toLowerCase().includes(lower) ||
       p.sku.toLowerCase().includes(lower) ||
       (p.barcode ?? "").includes(query),
   );
