@@ -42,6 +42,8 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
         setStoreName,
         pinned,
         setPinned,
+        budget,
+        setBudget,
       }}
     >
       {children}
