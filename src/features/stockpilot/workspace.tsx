@@ -88,17 +88,7 @@ export function Logo() {
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
   const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
-  const committed = state.orders
-    .filter((o) => o.status !== "Received")
-    .reduce(
-      (n, o) =>
-        n +
-        o.lines.reduce(
-          (m, l) => m + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
-          0,
-        ),
-      0,
-    );
+  const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
   const budgetLeft = budget - committed;
   const [hover, setHover] = useState(false);
   const [query, setQuery] = useState("");
@@ -997,9 +987,10 @@ function ActivityTable() {
         <table>
           <thead>
             <tr>
-              <th>PRODUCT / ORDER</th>
-              <th>ACTIVITY</th>
-              <th>STOCK CHANGE</th>
+               <th>PRODUCT / ORDER</th>
+               <th>ACTIVITY</th>
+               <th>STOCK CHANGE</th>
+               <th>SPENT</th>
               <th>CHANGED BY</th>
               <th>DATE & TIME</th>
             </tr>
@@ -1015,19 +1006,20 @@ function ActivityTable() {
                     <strong>{a.product}</strong>
                   </td>
                   <td>{a.action}</td>
-                  <td>
-                    {a.before !== undefined ? (
-                      <span
-                        className={
-                          a.after !== undefined && a.after < a.before ? "negative" : "positive"
-                        }
-                      >
-                        {a.before} → {a.after} units
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
+                   <td>
+                     {a.before !== undefined ? (
+                       <span
+                         className={
+                           a.after !== undefined && a.after < a.before ? "negative" : "positive"
+                         }
+                       >
+                         {a.before} → {a.after} units
+                       </span>
+                     ) : (
+                       "—"
+                     )}
+                   </td>
+                   <td>{a.amount !== undefined ? money(a.amount) : "—"}</td>
                   <td>
                     <span className="table-person">
                       <span className="avatar small">
