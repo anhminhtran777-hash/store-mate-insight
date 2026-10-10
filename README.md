@@ -12,14 +12,26 @@ Open your project in the [Lovable editor](https://lovable.dev) and keep building
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js 20.19 or newer (Node 22 recommended) and npm.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+cd stock-genie
+npm install
 npm run dev
 ```
+
+Then open the address it prints, usually http://localhost:5173
+
+### Windows: "running scripts is disabled on this system"
+
+PowerShell blocks npm's own script file by default. Run this once in PowerShell,
+answer `Y`, then run `npm install` again:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Alternative: use Command Prompt (cmd) instead of PowerShell, or run `npm.cmd install`.
 
 ## Built with
 
