@@ -161,7 +161,7 @@ export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCata
   size: entry.size,
   category: "Beverages",
   supplier: "Coca-Cola Distribution",
-  stock: 0,
+  stock: catalogueStock(i),
   threshold: 12,
   cost: entry.cost,
   price: Math.round(entry.cost * 1.8 * 100) / 100,
