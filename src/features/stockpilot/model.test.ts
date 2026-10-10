@@ -11,8 +11,36 @@ import {
   orderCost,
   checkout,
   confirmSupplier,
+  createPurchaseRequest,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
+describe("manual purchase requests", () => {
+  it("creates the chosen supplier and quantities as a uniquely numbered draft without stock or documents", () => {
+    const s = createPurchaseRequest(initialState, "PepsiCo Wholesale", [{ productId: "p2", quantity: 12 }, { productId: "p4", quantity: 6 }], "Alex", time);
+    expect(s.orders[0]).toEqual({ id: "PO-1043", supplier: "PepsiCo Wholesale", status: "Draft", date: "2026-10-10", lines: [{ productId: "p2", quantity: 12 }, { productId: "p4", quantity: 6 }] });
+    expect(s.products).toBe(initialState.products);
+    expect(s.documents).toBe(initialState.documents);
+    expect(s.activities[0]?.amount).toBeUndefined();
+    expect(createPurchaseRequest(s, "PepsiCo Wholesale", [{ productId: "p2", quantity: 1 }], "Alex", time).orders[0]?.id).toBe("PO-1044");
+  });
+  it("rejects empty requests, invalid quantities, duplicate lines, archived items and mismatched suppliers", () => {
+    for (const lines of [[], [{ productId: "p2", quantity: 0 }], [{ productId: "p2", quantity: 1.5 }], [{ productId: "p1", quantity: 2 }], [{ productId: "missing", quantity: 2 }], [{ productId: "p2", quantity: 2 }, { productId: "p2", quantity: 3 }]]) {
+      expect(createPurchaseRequest(initialState, "PepsiCo Wholesale", lines, "Alex", time)).toBe(initialState);
+    }
+    const archived = { ...initialState, products: initialState.products.map((p) => p.id === "p2" ? { ...p, archived: true } : p) };
+    expect(createPurchaseRequest(archived, "PepsiCo Wholesale", [{ productId: "p2", quantity: 2 }], "Alex", time)).toBe(archived);
+  });
+  it("uses manual quantities in the invoice, delivery note and goods receipt after approval", () => {
+    const draft = createPurchaseRequest(initialState, "PepsiCo Wholesale", [{ productId: "p2", quantity: 12 }, { productId: "p4", quantity: 6 }], "Alex", time);
+    const approved = approveOrder(draft, "PO-1043", "Alex", time);
+    const confirmed = confirmSupplier(approved, "PO-1043", "Both", "Alex", time);
+    expect(confirmed.documents.find((d) => d.kind === "Invoice")?.total).toBeCloseTo(16.38);
+    const received = receiveOrder(confirmed, "PO-1043", "Alex", time);
+    expect(received.products.find((p) => p.id === "p2")?.stock).toBe(30);
+    expect(received.products.find((p) => p.id === "p4")?.stock).toBe(42);
+    for (const doc of received.documents.filter((d) => d.reference === "PO-1043")) expect(doc.lines.map((l) => l.quantity)).toEqual([12, 6]);
+  });
+});
 describe("StockPilot inventory demo", () => {
   it("receiving stock updates quantity, October history, receipts and who changed it", () => {
     const s = changeStock(initialState, "p1", 24, "receive", "Alex Morgan", time);

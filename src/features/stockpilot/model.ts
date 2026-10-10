@@ -302,6 +302,34 @@ export function changeStock(
     ],
   };
 }
+/** Creates a validated supplier draft; approval and supplier paperwork remain separate. */
+export function createPurchaseRequest(
+  state: StoreState,
+  supplier: string,
+  lines: Order["lines"],
+  actor: string,
+  time: string,
+): StoreState {
+  if (!supplier.trim() || !lines.length || !Number.isFinite(Date.parse(time))) return state;
+  const seen = new Set<string>();
+  for (const line of lines) {
+    const product = state.products.find((p) => p.id === line.productId);
+    if (!product || product.archived || product.supplier !== supplier || seen.has(line.productId) ||
+      !Number.isSafeInteger(line.quantity) || line.quantity <= 0) return state;
+    seen.add(line.productId);
+  }
+  const next = state.orders.reduce((max, order) => {
+    const match = /^PO-(\d+)$/.exec(order.id);
+    return Math.max(max, Number(match?.[1] ?? 0));
+  }, 1042) + 1;
+  const id = `PO-${next}`;
+  const order: Order = { id, supplier, status: "Draft", date: time.slice(0, 10), lines: lines.map((line) => ({ ...line })) };
+  return {
+    ...state,
+    orders: [order, ...state.orders],
+    activities: [{ id: `${time}-${id}-created`, product: id, actor, action: "Purchase request created", time }, ...state.activities],
+  };
+}
 export function orderCost(state: StoreState, order: Order): number {
   return order.lines.reduce(
     (n, l) => n + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
