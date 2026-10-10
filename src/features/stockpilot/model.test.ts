@@ -60,7 +60,6 @@ describe("cashier numpad item lookup", () => {
     expect(idOf("coca-cola original")).toBe(coke.id);
     expect(idOf("coca-cola original 330 ml can")).toBe(coke.id);
   });
-});
   it("reports several matches and no match, and never returns archived items", () => {
     expect(findCashierItem(sellable, "coca-cola")).toBe("many");
     expect(findCashierItem(sellable, "zzz-nothing")).toBeUndefined();
