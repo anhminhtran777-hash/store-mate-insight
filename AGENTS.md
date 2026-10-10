@@ -15,3 +15,4 @@
 - Use separate leaf routes for workspace views and login so navigation is typed and every shareable view has specific metadata.
 - Use AI Elements for the simulated assistant conversation and composer; responses are computed locally with no server or API dependency.
 - Keep daily subdivisions and period aggregation in a pure chart-data adapter; sum received/sold flows and use closing stock/value, so chart views stay consistent without changing inventory transitions or inventing unavailable history.
+- Keep appearance in a session-only provider above the outlet and apply themes through global semantic CSS tokens so navigation and dialogs retain the same theme without changing inventory data.
