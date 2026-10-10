@@ -47,20 +47,25 @@ export function savePrefs(patch: Record<string, unknown>) {
   window.dispatchEvent(new Event(EVENT));
 }
 
-/** Load the saved inventory state for an account, or null when none exists. */
+/**
+ * Load the shared inventory state, or null when none exists.
+ * Stock is shared between the demo accounts so manager and staff stay in sync;
+ * falls back to a legacy per-account save on first load after the change.
+ */
 export function loadStockState<T>(username: string): T | null {
   if (!hasStorage()) return null;
   try {
-    const raw = localStorage.getItem(stateKey(username));
+    const raw =
+      localStorage.getItem(SHARED_STATE) ?? localStorage.getItem(legacyStateKey(username));
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;
   }
 }
-export function saveStockState(username: string, state: unknown) {
+export function saveStockState(_username: string, state: unknown) {
   if (!hasStorage()) return;
   try {
-    localStorage.setItem(stateKey(username), JSON.stringify(state));
+    localStorage.setItem(SHARED_STATE, JSON.stringify(state));
   } catch {
     // Storage full or unavailable: keep the demo running without persistence.
   }
