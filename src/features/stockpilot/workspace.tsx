@@ -718,11 +718,20 @@ function ProductModal({
       setState((s) => changeStock(s, p.id, q, mode, user, time));
     } else if (mode === "remove" || mode === "return") {
       const q = Number(data.get("quantity"));
-      const reason = [String(data.get("reason") ?? ""), String(data.get("note") ?? "").trim()]
+      const memoNo = String(data.get("memoNumber") ?? "").trim();
+      const memoDate = String(data.get("memoDate") ?? "");
+      const noMemo = data.get("noMemo") === "on";
+      const memo =
+        mode !== "return" ? "" : noMemo ? "No credit memo" : `Credit memo ${memoNo} (${memoDate})`;
+      const reason = [String(data.get("reason") ?? ""), String(data.get("note") ?? "").trim(), memo]
         .filter(Boolean)
         .join(" — ");
       if (!p || q <= 0 || !Number.isInteger(q) || q > p.stock) {
         setError("Enter a valid whole quantity within available stock.");
+        return;
+      }
+      if (mode === "return" && !noMemo && (!memoNo || !memoDate)) {
+        setError("Enter the credit memo number and date, or tick “No credit memo”.");
         return;
       }
       setState((s) => removeStock(s, p.id, q, mode, reason, user, time));
@@ -914,6 +923,7 @@ function ProductModal({
                 Note (optional)
                 <input name="note" placeholder="e.g. Cans dented in delivery" />
               </label>
+              {mode === "return" && <CreditMemoFields />}
             </>
           ) : mode === "archive" ? (
             <p className="text-sm text-muted-foreground">
