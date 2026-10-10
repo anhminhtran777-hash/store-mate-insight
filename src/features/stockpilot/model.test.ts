@@ -12,6 +12,7 @@ import {
   checkout,
   confirmSupplier,
   createPurchaseRequest,
+  findCashierItem,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("Bulgarian Coca-Cola supplier catalogue", () => {
@@ -39,6 +40,26 @@ describe("Bulgarian Coca-Cola supplier catalogue", () => {
       { name: `${small.name} (${small.size})`, quantity: 24, unit: small.cost },
       { name: `${large.name} (${large.size})`, quantity: 6, unit: large.cost },
     ]);
+  });
+});
+describe("cashier numpad item lookup", () => {
+  const sellable = initialState.products.filter((p) => !p.archived);
+  it("finds items by item code, barcode, SKU, exact name and unique name fragment", () => {
+    const coke = sellable[0];
+    expect(coke).toBeDefined();
+    if (!coke) return;
+    expect(findCashierItem(sellable, "1")?.id).toBe(coke.id);
+    expect(findCashierItem(sellable, coke.barcode ?? "")?.id).toBe(coke.id);
+    expect(findCashierItem(sellable, coke.sku)?.id).toBe(coke.id);
+    expect(findCashierItem(sellable, coke.sku.toLowerCase())?.id).toBe(coke.id);
+    expect(findCashierItem(sellable, coke.name)?.id).toBe(coke.id);
+    expect(findCashierItem(sellable, "coca-cola original")?.id).toBe(coke.id);
+  });
+  it("reports several matches and no match, and never returns archived items", () => {
+    expect(findCashierItem(sellable, "coca-cola")).toBe("many");
+    expect(findCashierItem(sellable, "zzz-nothing")).toBeUndefined();
+    const archived = initialState.products.map((p) => (p.id === "p1" ? { ...p, archived: true } : p));
+    expect(findCashierItem(archived.filter((p) => !p.archived), "1")).toBeUndefined();
   });
 });
 describe("manual purchase requests", () => {
