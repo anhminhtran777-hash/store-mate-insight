@@ -1482,3 +1482,27 @@ export function Login() {
     </div>
   );
 }
+
+/** Supplier credit memo details for a return; can be skipped when no document was issued. */
+function CreditMemoFields() {
+  const [none, setNone] = useState(false);
+  return (
+    <fieldset className="grid gap-2 rounded-md border border-border p-3">
+      <legend className="px-1 text-sm font-medium">Credit memo</legend>
+      <div className="form-two">
+        <label>
+          Document number
+          <input name="memoNumber" placeholder="e.g. CM-0001234" disabled={none} required={!none} />
+        </label>
+        <label>
+          Document date
+          <input name="memoDate" type="date" disabled={none} required={!none} />
+        </label>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="noMemo" checked={none} onChange={(e) => setNone(e.target.checked)} />
+        No credit memo (no documents for this return)
+      </label>
+    </fieldset>
+  );
+}
