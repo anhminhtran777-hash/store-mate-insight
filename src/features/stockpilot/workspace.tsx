@@ -91,9 +91,7 @@ const categoryIcons = {
 export function Logo() {
   return (
     <div className="logo">
-      <span className="logo-mark">
-        <Package size={23} strokeWidth={1.8} />
-      </span>
+      <img src={logoAsset.url} alt="Stock Genie logo" className="logo-image" width={40} height={40} />
       <span>
         Stock Genie<span className="logo-dot">.</span>
       </span>
