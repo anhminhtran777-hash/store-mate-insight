@@ -14,6 +14,8 @@ import {
   createPurchaseRequest,
   findCashierItem,
   groupByBarcode,
+  stackUnits,
+  catalogueCaseSize,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("Bulgarian Coca-Cola supplier catalogue", () => {
@@ -264,5 +266,32 @@ describe("cashier checkout and supplier documents", () => {
     expect(b.documents.map((d) => d.kind)).toEqual(["Goods receipt", "Invoice", "Delivery note", "Purchase order"]);
     expect(b.documents[0]?.relatedIds).toEqual(expect.arrayContaining([confirmed.documents[0]?.id, confirmed.documents[1]?.id]));
     expect(b.documents[0]?.lines.map((l) => l.quantity)).toEqual([48, 24]);
+  });
+});
+
+describe("wholesale stack ordering", () => {
+  it("computes units from stacks using the product case size", () => {
+    const cola = initialState.products.find((p) => p.id === "cch-bg-817e367a5d") ?? initialState.products.find((p) => p.name.includes("Coca-Cola") && p.size.includes("1.5"));
+    expect(cola?.caseSize).toBe(6);
+    expect(stackUnits(cola!, 6)).toBe(36); // a 2x3 stack layout of 1.5 L bottles
+  });
+  it("assigns case sizes from pack size and keeps every catalogue pack wholesalable", () => {
+    expect(catalogueCaseSize("330 ml can")).toBe(24);
+    expect(catalogueCaseSize("1.5 L bottle")).toBe(6);
+    expect(catalogueCaseSize("330 ml glass bottle")).toBe(20);
+    for (const p of initialState.products.filter((p) => p.id.startsWith("cch-bg-"))) {
+      expect(p.caseSize).toBeGreaterThan(0);
+    }
+  });
+  it("a stack request flows through approval and receipt with the full unit count", () => {
+    const cola = initialState.products.find((p) => p.id.startsWith("cch-bg-") && p.name.includes("Coca-Cola") && p.size.includes("1.5"))!;
+    const units = stackUnits(cola, 6);
+    let s = createPurchaseRequest(initialState, cola.supplier, [{ productId: cola.id, quantity: units }], "Alex Morgan", time);
+    const order = s.orders[0]!;
+    expect(order.lines[0]!.quantity).toBe(units);
+    s = approveOrder(s, order.id, "Alex Morgan", time);
+    s = confirmSupplier(s, order.id, "Both", "Alex Morgan", time);
+    s = receiveOrder(s, order.id, "Alex Morgan", time);
+    expect(s.products.find((p) => p.id === cola.id)!.stock).toBe(units);
   });
 });
