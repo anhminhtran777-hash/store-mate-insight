@@ -9,7 +9,7 @@
 - [x] Add one-click restock plus purchase budget, and make budget reflect real spend.
 - [x] Add revenue stat and show sold-stock revenue in the activity log.
 - [x] Keep stat caption text fixed green/red in every theme.
-- [ ] Logo: on hold — the app name will change first.
+- [x] Rename app to Stock Genie and add a logo.
 - [x] Make receipts narrow and centered and supplier documents larger with complete available details; verify screen and print views.
 - [x] Separate purchase requests from simulated supplier confirmations; require invoice and delivery note for receiving, link goods receipts, and match invoice reference styling.
 - [x] Add manual purchase requests and verify their supplier invoice and receiving flow.
