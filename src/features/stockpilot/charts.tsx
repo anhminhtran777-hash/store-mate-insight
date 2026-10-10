@@ -10,7 +10,7 @@ function TrendChart({
   bars?: boolean;
   secondary?: number[];
 }) {
-  const max = Math.max(...values, ...(secondary || [])) * 1.2;
+  const max = Math.max(1, ...values, ...(secondary || [])) * 1.2;
   const y = (v: number) => 112 - (v / max) * 90;
   const x = (i: number) => 35 + i * 43;
   return (
@@ -37,7 +37,7 @@ function TrendChart({
         />
       )}
       {values.map((v, i) => (
-        <g key={i}>
+        <g key={i} aria-label={`${months[i]}: ${v}${bars ? ` received, ${secondary?.[i] ?? 0} sold` : ""}`}>
           {bars ? (
             <>
               <rect
@@ -47,6 +47,7 @@ function TrendChart({
                 height={112 - y(v)}
                 rx="2"
                 className="bar-received"
+                fill={i > 0 && v < (values[i - 1] ?? v) ? "var(--destructive)" : "var(--primary)"}
               />
               <rect
                 x={x(i) + 2}
@@ -55,6 +56,7 @@ function TrendChart({
                 height={112 - y(secondary?.[i] || 0)}
                 rx="2"
                 className="bar-sold"
+                fill={i > 0 && (secondary?.[i] ?? 0) < (secondary?.[i - 1] ?? 0) ? "var(--destructive)" : "var(--chart-sold)"}
               />
             </>
           ) : (
@@ -81,10 +83,6 @@ function TrendChart({
           <text x={x(i)} y="137" textAnchor="middle" className="chart-label">
             {months[i]}
           </text>
-          <title>
-            {months[i]}: {v}
-            {bars ? ` received, ${secondary?.[i]} sold` : ""}
-          </title>
         </g>
       ))}
     </svg>
