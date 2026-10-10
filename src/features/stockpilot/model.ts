@@ -165,6 +165,7 @@ export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCata
   price: Math.round(entry.cost * 1.8 * 100) / 100,
   sku: `CCBG-${entry.key.toUpperCase()}`,
   barcode: ean13(`299${String(i + 1).padStart(9, "0")}`),
+  caseSize: catalogueCaseSize(entry.size),
   emoji: entry.name.startsWith("Bankya") || entry.name.startsWith("Rosa") ? "💧" : "🥤",
   history: [0, 0, 0, 0, 0, 0],
   received: [0, 0, 0, 0, 0, 0],
