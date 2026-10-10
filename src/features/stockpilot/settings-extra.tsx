@@ -108,7 +108,7 @@ export function ExtraSettings({ tab }: { tab: ExtraTab }) {
       onSubmit={(e) => {
         e.preventDefault();
         const clean = { ...values };
-        if (tab === "security") { clean.current = ""; clean.next = ""; }
+        if (tab === "security") { clean["current"] = ""; clean["next"] = ""; }
         Object.assign(sessionValues, clean);
         setValues(clean);
         setSaved(true);
