@@ -466,7 +466,7 @@ function ProductDetail({
 }: {
   open: (mode: "edit" | "receive" | "sell" | "archive") => void;
 }) {
-  const { state, selectedId } = useStockPilot();
+  const { state, setState, selectedId, user } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
   if (!p) return <div className="empty-state">Select a product.</div>;
   const Icon = categoryIcons[p.category];
@@ -582,6 +582,20 @@ function ProductDetail({
         <Button size="sm" disabled={p.archived} onClick={() => open("receive")}>
           <ArrowDownToLine />
           Receive stock
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={p.archived}
+          title={`Restock to ${p.threshold * 2} units`}
+          onClick={() =>
+            setState((s) =>
+              changeStock(s, p.id, restockQuantity(p), "receive", user, new Date().toISOString()),
+            )
+          }
+        >
+          <PackagePlus />
+          Restock now
         </Button>
       </div>
       <div className="recent-activity">
