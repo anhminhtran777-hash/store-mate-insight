@@ -87,7 +87,19 @@ export function Logo() {
   );
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
-  const { state, user, storeName, pinned, setPinned } = useStockPilot();
+  const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
+  const committed = state.orders
+    .filter((o) => o.status !== "Received")
+    .reduce(
+      (n, o) =>
+        n +
+        o.lines.reduce(
+          (m, l) => m + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
+          0,
+        ),
+      0,
+    );
+  const budgetLeft = budget - committed;
   const [hover, setHover] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
@@ -259,6 +271,14 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                 icon={<ShoppingCart />}
                 note="Total stock at cost"
                 trend="Live inventory value"
+              />
+              <Metric
+                title="Purchase budget"
+                value={money(budgetLeft)}
+                icon={<Wallet />}
+                note={`${money(committed)} committed of ${money(budget)}`}
+                trend={budgetLeft < 0 ? "Over budget" : "Left to spend this month"}
+                warning={budgetLeft < 0}
               />
               <Metric
                 title="Low-stock items"
