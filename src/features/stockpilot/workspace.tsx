@@ -62,6 +62,7 @@ import {
   supplierDocuments,
   orderCost,
   createPurchaseRequest,
+  stackUnits,
   type Product,
 } from "./model";
 import { ProductCharts } from "./charts";
