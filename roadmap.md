@@ -16,3 +16,4 @@
 - [x] Add manual purchase requests and verify their supplier invoice and receiving flow.
 - [x] Expand Coca-Cola Distribution with researched Bulgarian brands, variants and pack sizes; verify manual ordering.
 - [x] Remove the Coca-Cola product photo from the list, detail panel and login card.
+- [x] Scale the new purchase request window to the viewport so only the item list scrolls.
