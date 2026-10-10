@@ -17,5 +17,13 @@ export const Route = createFileRoute("/settings")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => <Workspace page="Settings" />,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: search.tab === "appearance" ? ("appearance" as const) : ("profile" as const),
+  }),
+  component: SettingsPage,
 });
+
+function SettingsPage() {
+  const { tab } = Route.useSearch();
+  return <Workspace page="Settings" settingsTab={tab} />;
+}
