@@ -1037,7 +1037,7 @@ function Orders() {
                         onChange={(e) => { const stacks = e.target.value; setQuantities((q) => ({ ...q, [p.id]: stacks === "" ? "" : String(stackUnits(p, Number(stacks))) })); setRequestError(""); }} />
                       <span className="text-xs text-muted-foreground">× {p.caseSize}</span>
                       <div className="stack-layouts" role="group" aria-label={`Quick stack layouts for ${p.name}`}>
-                        {[[2, 2], [2, 3], [3, 3]].map(([w, h]) => (
+                        {([[2, 2], [2, 3], [3, 3]] as [number, number][]).map(([w, h]) => (
                           <button type="button" key={`${w}x${h}`} className="stack-layout" onClick={() => { setQuantities((q) => ({ ...q, [p.id]: String(stackUnits(p, w * h)) })); setRequestError(""); }}>{w}×{h}</button>
                         ))}
                       </div>
