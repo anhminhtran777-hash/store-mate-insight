@@ -2290,7 +2290,9 @@
 .barcode-line code { font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted-foreground); }
 
 .cashier { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.25rem; align-items: start; }
-.cashier h3 { font-weight: 600; margin-bottom: 0.75rem; }
+.cashier h3 { font-weight: 600; }
+.cashier-search { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; }
+.cashier-search input { max-width: 320px; }
 .cashier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
 .cashier-item { position: relative; display: flex; flex-direction: column; gap: 0.2rem; text-align: left; padding: 0.75rem; border-radius: 0.8rem; border: 1px solid var(--border); background: var(--card); color: var(--card-foreground); transition: transform 0.12s, box-shadow 0.12s; }
 .cashier-item:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-chart, 0 4px 12px rgb(0 0 0 / 0.08)); }
