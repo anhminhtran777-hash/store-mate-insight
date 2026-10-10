@@ -1331,6 +1331,13 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance" | ExtraTab>(initialTab);
+  const [startPage, setStartPage] = useState("Dashboard");
+  const [chartPeriod, setChartPeriod] = useState("Monthly");
+  const [sortBy, setSortBy] = useState("Name (A–Z)");
+  const [perPage, setPerPage] = useState("24");
+  const [compact, setCompact] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(true);
+  const [tooltips, setTooltips] = useState(true);
   return (
     <section className="settings-section">
       <div className="settings-tabs flex-wrap" role="tablist" aria-label="Settings">
