@@ -1002,12 +1002,7 @@
 .chart-area {
   fill: var(--chart-fill);
 }
-.bar-received {
-  fill: var(--primary);
-}
-.bar-sold {
-  fill: var(--chart-sold);
-}
+
 .chart-legend {
   display: flex;
   gap: 8px;

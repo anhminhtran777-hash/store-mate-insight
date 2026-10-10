@@ -37,7 +37,10 @@ function TrendChart({
         />
       )}
       {values.map((v, i) => (
-        <g key={i} aria-label={`${months[i]}: ${v}${bars ? ` received, ${secondary?.[i] ?? 0} sold` : ""}`}>
+        <g
+          key={i}
+          aria-label={`${months[i]}: ${v}${bars ? ` received, ${secondary?.[i] ?? 0} sold` : ""}`}
+        >
           {bars ? (
             <>
               <rect
@@ -56,7 +59,11 @@ function TrendChart({
                 height={112 - y(secondary?.[i] || 0)}
                 rx="2"
                 className="bar-sold"
-                fill={i > 0 && (secondary?.[i] ?? 0) < (secondary?.[i - 1] ?? 0) ? "var(--destructive)" : "var(--chart-sold)"}
+                fill={
+                  i > 0 && (secondary?.[i] ?? 0) < (secondary?.[i - 1] ?? 0)
+                    ? "var(--destructive)"
+                    : "var(--chart-sold)"
+                }
               />
             </>
           ) : (
