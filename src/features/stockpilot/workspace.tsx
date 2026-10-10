@@ -62,6 +62,7 @@ import {
   confirmSupplier,
   supplierDocuments,
   orderCost,
+  createPurchaseRequest,
   type Product,
 } from "./model";
 import { ProductCharts } from "./charts";
@@ -1004,8 +1005,62 @@ function Orders() {
   const { state, setState, user } = useStockPilot();
   const [tab, setTab] = useState("All orders");
   const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [supplier, setSupplier] = useState("");
+  const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const [requestError, setRequestError] = useState("");
+  const suppliers = [...new Set(state.products.filter((p) => !p.archived && p.supplier.trim()).map((p) => p.supplier))].sort();
+  const supplierProducts = state.products.filter((p) => !p.archived && p.supplier === supplier);
+  const requestLines = supplierProducts.filter((p) => (quantities[p.id] ?? "") !== "").map((p) => ({ productId: p.id, quantity: Number(quantities[p.id]) }));
+  const requestTotal = requestLines.reduce((total, line) => total + line.quantity * (supplierProducts.find((p) => p.id === line.productId)?.cost ?? 0), 0);
+  const submitRequest = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const time = new Date().toISOString();
+    if (createPurchaseRequest(state, supplier, requestLines, user, time) === state) {
+      setRequestError("Choose a supplier and enter a positive whole quantity for at least one product.");
+      return;
+    }
+    setState((s) => createPurchaseRequest(s, supplier, requestLines, user, time));
+    setTab("Draft");
+    setRequestOpen(false);
+  };
   return (
     <section className="data-section">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 className="text-lg font-semibold">Purchase requests</h2>
+        <Button disabled={!suppliers.length} onClick={() => { setSupplier(suppliers[0] ?? ""); setQuantities({}); setRequestError(""); setRequestOpen(true); }}><Plus />New purchase request</Button>
+      </div>
+      <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>New purchase request</DialogTitle>
+            <DialogDescription>Supplier: {supplier || "Not selected"}</DialogDescription>
+          </DialogHeader>
+          <form className="product-form" onSubmit={submitRequest}>
+            <label>Supplier
+              <select aria-label="Request supplier" value={supplier} required onChange={(e) => { setSupplier(e.target.value); setQuantities({}); setRequestError(""); }}>
+                {suppliers.map((name) => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </label>
+            <div className="table-overflow max-h-80 overflow-y-auto">
+              <table>
+                <thead><tr><th>Product</th><th>Unit cost</th><th>Quantity</th></tr></thead>
+                <tbody>{supplierProducts.map((p) => <tr key={p.id}>
+                  <td><strong>{p.name}</strong><div className="text-xs text-muted-foreground">{p.size} · {p.sku} · {p.stock} in stock</div></td>
+                  <td>{money(p.cost)}</td>
+                  <td><input className="w-20 rounded-md border border-input bg-background px-2 py-2 text-foreground" aria-label={`Request quantity for ${p.name}`} type="number" min="1" step="1" value={quantities[p.id] ?? ""} placeholder="—" onChange={(e) => { setQuantities((q) => ({ ...q, [p.id]: e.target.value })); setRequestError(""); }} /></td>
+                </tr>)}</tbody>
+              </table>
+            </div>
+            <div className="order-total"><span>Estimated request value</span><strong>{money(requestTotal)}</strong></div>
+            {requestError && <p role="alert" className="text-sm text-destructive">{requestError}</p>}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setRequestOpen(false)}>Cancel</Button>
+              <Button type="submit"><Plus />Create draft request</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <div className="view-tabs">
         {["All orders", "Draft", "Approved", "Received"].map((t) => (
           <Button variant={tab === t ? "secondary" : "ghost"} key={t} onClick={() => setTab(t)}>

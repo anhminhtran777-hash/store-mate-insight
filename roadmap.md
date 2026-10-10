@@ -12,3 +12,4 @@
 - [ ] Logo: on hold — the app name will change first.
 - [x] Make receipts narrow and centered and supplier documents larger with complete available details; verify screen and print views.
 - [x] Separate purchase requests from simulated supplier confirmations; require invoice and delivery note for receiving, link goods receipts, and match invoice reference styling.
+- [x] Add manual purchase requests and verify their supplier invoice and receiving flow.

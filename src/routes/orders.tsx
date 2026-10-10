@@ -6,12 +6,12 @@ export const Route = createFileRoute("/orders")({
       { title: "Purchase Orders — StockPilot" },
       {
         name: "description",
-        content: "Review, approve, and receive your convenience store purchase orders.",
+        content: "Create manual purchase requests, record supplier invoices and delivery notes, and receive stock in StockPilot.",
       },
       { property: "og:title", content: "Purchase Orders — StockPilot" },
       {
         property: "og:description",
-        content: "Review, approve, and receive your convenience store purchase orders.",
+        content: "Create manual purchase requests, record supplier invoices and delivery notes, and receive stock in StockPilot.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
