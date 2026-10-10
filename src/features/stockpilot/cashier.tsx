@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } from "lucide-react";
+import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2, Calculator, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
@@ -27,7 +27,7 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   const order = state.orders.find((o) => o.id === doc.reference);
   const date = new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   const units = doc.lines.reduce((n, line) => n + line.quantity, 0);
-  if (doc.kind === "Invoice") return <InvoiceSheet doc={doc} buyer={storeName} />;
+  if (doc.kind === "Invoice" || doc.kind === "Accounting invoice") return <InvoiceSheet doc={doc} buyer={storeName} />;
   if (receipt) return (
     <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
       <header className="receipt-heading">
@@ -446,16 +446,17 @@ export function Cashier() {
   );
 }
 
-const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck };
+const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
   const [open, setOpen] = useState<StoreDocument | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter);
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
-        {(["All", "Receipt", "Refund receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt"] as const).map((f) => (
+        {(["All", "Receipt", "Refund receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt", "Accounting invoice"] as const).map((f) => (
           <Button
             key={f}
             variant="ghost"
@@ -464,10 +465,16 @@ export function Documents() {
             data-state={filter === f ? "on" : "off"}
             onClick={() => setFilter(f)}
           >
-            {f === "All" ? "All" : f === "Goods receipt" ? "Goods receipts" : `${f}s`}
+            {f === "All" ? "All" : f === "Goods receipt" ? "Goods receipts" : f === "Accounting invoice" ? "Accounting invoices" : `${f}s`}
           </Button>
         ))}
       </div>
+      {filter === "Accounting invoice" && (
+        <div className="flex justify-between items-center gap-2 py-3">
+          <p className="text-sm text-muted-foreground">Invoices for accounting only — rent, utilities, services. They never change stock.</p>
+          <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> Record accounting invoice</Button>
+        </div>
+      )}
       {!docs.length ? (
         <p className="text-sm text-muted-foreground py-6">
           No documents yet. Sell items at the cashier, or approve and receive a purchase order.
@@ -497,6 +504,57 @@ export function Documents() {
         </ul>
       )}
       <DocumentDialog doc={open} close={() => setOpen(null)} />
+      <AccountingInvoiceDialog open={addOpen} onOpenChange={setAddOpen} />
     </section>
+  );
+}
+
+function AccountingInvoiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const { setState, user } = useStockPilot();
+  const [error, setError] = useState("");
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const get = (k: string) => String(f.get(k) ?? "").trim();
+    const amount = Number(get("amount"));
+    if (!get("party") || !get("number") || !get("date") || !get("description") || !(amount > 0))
+      return setError("Fill in supplier, number, date, description and a positive amount.");
+    const id = `ACC-${Date.now()}`;
+    const doc: StoreDocument = {
+      id, kind: "Accounting invoice", reference: get("number"), number: get("number"),
+      party: get("party"), actor: user, time: new Date(`${get("date")}T12:00:00`).toISOString(),
+      lines: [{ name: get("description"), quantity: 1, unit: amount }], total: amount,
+      ...(get("category") ? { note: get("category") } : {}),
+    };
+    setState((s) => ({ ...s, documents: [doc, ...(s.documents ?? [])] }));
+    setError("");
+    onOpenChange(false);
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Record accounting invoice</DialogTitle>
+          <DialogDescription>For bookkeeping only — stock and orders stay unchanged.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="product-form">
+          <label>Supplier / issuer<input name="party" required placeholder="e.g. Sofia Power Co." /></label>
+          <div className="form-two">
+            <label>Invoice number<input name="number" required placeholder="e.g. 0000012345" /></label>
+            <label>Invoice date<input name="date" type="date" required /></label>
+          </div>
+          <label>Description<input name="description" required placeholder="e.g. Electricity, September" /></label>
+          <div className="form-two">
+            <label>Amount ($)<input name="amount" type="number" step="0.01" min="0.01" required /></label>
+            <label>Category (optional)<input name="category" placeholder="e.g. Utilities" /></label>
+          </div>
+          {error && <p className="negative text-sm" role="alert">{error}</p>}
+          <div className="flex justify-end gap-2 mt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit">Save invoice</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
