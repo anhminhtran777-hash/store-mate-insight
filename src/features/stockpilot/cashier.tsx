@@ -312,19 +312,7 @@ export function Cashier() {
   return (
     <div className="cashier">
       <section className="cashier-items">
-        <div className="cashier-search">
-          <h3>Items</h3>
-          <input
-            type="search"
-            placeholder="Search by name, barcode or code…"
-            aria-label="Search items by name, barcode or code"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        {search.trim() && !products.length && (
-          <p className="text-sm text-muted-foreground py-6">No items match "{search.trim()}".</p>
-        )}
+        <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
           {products.map((p) => (
             <button
