@@ -70,6 +70,7 @@ import { Assistant } from "./assistant";
 import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
 import cola from "@/assets/cola.jpg";
+import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", to: "/", icon: Package },
