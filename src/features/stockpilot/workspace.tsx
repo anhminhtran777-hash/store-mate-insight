@@ -377,7 +377,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                         (filter === "archived" ? p.archived : !p.archived) &&
                         (filter !== "low" || isLowStock(p)) &&
                         (category === "All categories" || p.category === category) &&
-                        `${p.name} ${p.category} ${p.sku}`
+                        `${p.name} ${p.size} ${p.supplier} ${p.category} ${p.sku}`
                           .toLowerCase()
                           .includes(query.toLowerCase()),
                     )
@@ -389,7 +389,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                       (filter === "archived" ? p.archived : !p.archived) &&
                       (filter !== "low" || isLowStock(p)) &&
                       (category === "All categories" || p.category === category) &&
-                      `${p.name} ${p.category} ${p.sku}`
+                      `${p.name} ${p.size} ${p.supplier} ${p.category} ${p.sku}`
                         .toLowerCase()
                         .includes(query.toLowerCase()),
                   ) && <div className="empty-state">No matching products.</div>}
@@ -1009,6 +1009,7 @@ function Orders() {
   const [supplier, setSupplier] = useState("");
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [requestError, setRequestError] = useState("");
+  const [requestSearch, setRequestSearch] = useState("");
   const suppliers = [...new Set(state.products.filter((p) => !p.archived && p.supplier.trim()).map((p) => p.supplier))].sort();
   const supplierProducts = state.products.filter((p) => !p.archived && p.supplier === supplier);
   const requestLines = supplierProducts.filter((p) => (quantities[p.id] ?? "") !== "").map((p) => ({ productId: p.id, quantity: Number(quantities[p.id]) }));
@@ -1028,7 +1029,7 @@ function Orders() {
     <section className="data-section">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="text-lg font-semibold">Purchase requests</h2>
-        <Button disabled={!suppliers.length} onClick={() => { setSupplier(suppliers[0] ?? ""); setQuantities({}); setRequestError(""); setRequestOpen(true); }}><Plus />New purchase request</Button>
+        <Button disabled={!suppliers.length} onClick={() => { setSupplier(suppliers[0] ?? ""); setQuantities({}); setRequestError(""); setRequestSearch(""); setRequestOpen(true); }}><Plus />New purchase request</Button>
       </div>
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
@@ -1038,17 +1039,18 @@ function Orders() {
           </DialogHeader>
           <form className="product-form" onSubmit={submitRequest}>
             <label>Supplier
-              <select aria-label="Request supplier" value={supplier} required onChange={(e) => { setSupplier(e.target.value); setQuantities({}); setRequestError(""); }}>
+              <select aria-label="Request supplier" value={supplier} required onChange={(e) => { setSupplier(e.target.value); setQuantities({}); setRequestError(""); setRequestSearch(""); }}>
                 {suppliers.map((name) => <option key={name} value={name}>{name}</option>)}
               </select>
             </label>
+            <div className="search-input"><Search size={16} /><input aria-label="Search supplier products" placeholder="Search products or pack sizes…" value={requestSearch} onChange={(e) => setRequestSearch(e.target.value)} /></div>
             <div className="table-overflow max-h-80 overflow-y-auto">
               <table>
                 <thead><tr><th>Product</th><th>Unit cost</th><th>Quantity</th></tr></thead>
-                <tbody>{supplierProducts.map((p) => <tr key={p.id}>
+                <tbody>{supplierProducts.filter((p) => `${p.name} ${p.size} ${p.sku}`.toLowerCase().includes(requestSearch.toLowerCase())).map((p) => <tr key={p.id}>
                   <td><strong>{p.name}</strong><div className="text-xs text-muted-foreground">{p.size} · {p.sku} · {p.stock} in stock</div></td>
                   <td>{money(p.cost)}</td>
-                  <td><input className="w-20 rounded-md border border-input bg-background px-2 py-2 text-foreground" aria-label={`Request quantity for ${p.name}`} type="number" min="1" step="1" value={quantities[p.id] ?? ""} placeholder="—" onChange={(e) => { setQuantities((q) => ({ ...q, [p.id]: e.target.value })); setRequestError(""); }} /></td>
+                  <td><input className="w-20 rounded-md border border-input bg-background px-2 py-2 text-foreground" aria-label={`Request quantity for ${p.name} (${p.size})`} type="number" min="1" step="1" value={quantities[p.id] ?? ""} placeholder="—" onChange={(e) => { setQuantities((q) => ({ ...q, [p.id]: e.target.value })); setRequestError(""); }} /></td>
                 </tr>)}</tbody>
               </table>
             </div>
@@ -1084,7 +1086,7 @@ function Orders() {
                   const p = state.products.find((p) => p.id === l.productId);
                   return (
                     <div key={l.productId}>
-                      <span>{p?.name}</span>
+                      <span>{p?.name}<span className="block text-xs text-muted-foreground">{p?.size}</span></span>
                       <strong>{l.quantity} units</strong>
                     </div>
                   );
