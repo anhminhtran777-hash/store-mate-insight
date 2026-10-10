@@ -15,6 +15,7 @@ export function findAccount(username: string, password: string): Account | undef
 
 const CURRENT = "stockgenie:current-account";
 const prefsKey = (u: string) => `stockgenie:prefs:${u}`;
+const stateKey = (u: string) => `stockgenie:state:${u}`;
 const EVENT = "stockgenie-prefs";
 const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
 
@@ -43,6 +44,25 @@ export function savePrefs(patch: Record<string, unknown>) {
   if (!acc) return;
   localStorage.setItem(prefsKey(acc.username), JSON.stringify({ ...loadPrefs(), ...patch }));
   window.dispatchEvent(new Event(EVENT));
+}
+
+/** Load the saved inventory state for an account, or null when none exists. */
+export function loadStockState<T>(username: string): T | null {
+  if (!hasStorage()) return null;
+  try {
+    const raw = localStorage.getItem(stateKey(username));
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+export function saveStockState(username: string, state: unknown) {
+  if (!hasStorage()) return;
+  try {
+    localStorage.setItem(stateKey(username), JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable: keep the demo running without persistence.
+  }
 }
 
 /** Subscribe to saved-preference changes (sign-in, sign-out, edits). */
