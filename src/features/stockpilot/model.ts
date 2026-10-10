@@ -215,6 +215,7 @@ export function changeStock(
         action: mode === "receive" ? "Stock received" : "Stock sold",
         before: p.stock,
         after: stock,
+        amount: mode === "receive" ? quantity * p.cost : undefined,
         time,
       },
       ...state.activities,
@@ -229,11 +230,12 @@ export function approveOrder(
 ): StoreState {
   const order = state.orders.find((o) => o.id === id);
   if (!order || order.status !== "Draft") return state;
+  const amount = orderCost(state, order);
   return {
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
     activities: [
-      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", time },
+      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", amount, time },
       ...state.activities,
     ],
   };
