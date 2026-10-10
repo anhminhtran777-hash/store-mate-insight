@@ -13,10 +13,10 @@ const AppearanceContext = createContext<{ theme: Theme; setTheme: (theme: Theme)
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("forest");
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset["theme"] = theme;
     document.documentElement.classList.toggle("dark", theme === "night");
     return () => {
-      delete document.documentElement.dataset.theme;
+      delete document.documentElement.dataset["theme"];
       document.documentElement.classList.remove("dark");
     };
   }, [theme]);
