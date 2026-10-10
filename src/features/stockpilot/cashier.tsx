@@ -212,17 +212,28 @@ export function Cashier() {
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
   const groups = useMemo(() => groupByBarcode(allProducts), [allProducts]);
+  const codes = useMemo(() => {
+    const m = new Map<string, string>();
+    state.products.forEach((p, i) => m.set(p.id, String(i + 1)));
+    return m;
+  }, [state.products]);
+  /** Live item filter: whatever is typed on the numpad narrows the grid — names, SKUs, item codes and barcodes. */
   const visibleGroups = useMemo(() => {
     const q = buffer.trim().toLowerCase();
-    if (!q || !/[a-z]/.test(q)) return groups;
+    if (!q) return groups;
     return groups.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.size.toLowerCase().includes(q) ||
-        g.barcode.includes(q) ||
-        g.items.some((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)),
+        g.items.some(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.sku.toLowerCase().includes(q) ||
+            productBarcodes(p).some((b) => b.includes(q)) ||
+            codes.get(p.id) === q,
+        ),
     );
-  }, [groups, buffer]);
+  }, [groups, buffer, codes]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
