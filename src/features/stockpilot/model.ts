@@ -379,6 +379,15 @@ export function createPurchaseRequest(
     activities: [{ id: `${time}-${id}-created`, product: id, actor, action: "Purchase request created", time }, ...state.activities],
   };
 }
+/** Creates one draft request per supplier for every active product below its minimum, at a fixed quantity each. */
+export function requestAllLowStock(state: StoreState, quantity: number, actor: string, time: string): StoreState {
+  const low = state.products.filter((p) => !p.archived && p.stock < p.threshold && p.supplier.trim());
+  const suppliers = [...new Set(low.map((p) => p.supplier))];
+  return suppliers.reduce((s, supplier, i) => createPurchaseRequest(
+    s, supplier, low.filter((p) => p.supplier === supplier).map((p) => ({ productId: p.id, quantity })), actor,
+    new Date(Date.parse(time) + i).toISOString(),
+  ), state);
+}
 export function orderCost(state: StoreState, order: Order): number {
   return order.lines.reduce(
     (n, l) => n + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
