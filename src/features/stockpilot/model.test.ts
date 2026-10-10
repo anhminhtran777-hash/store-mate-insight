@@ -7,6 +7,7 @@ import {
   trendColor,
   isLowStock,
   restockQuantity,
+  orderCost,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("StockPilot inventory demo", () => {
@@ -74,5 +75,24 @@ describe("StockPilot inventory demo", () => {
     expect(restockQuantity(healthy)).toBe(24);
     const s = changeStock(initialState, low.id, restockQuantity(low), "receive", "Alex Morgan", time);
     expect(s.products[1]?.stock).toBe(low.stock + 30);
+  });
+  it("restocking logs the money spent at product cost", () => {
+    const s = changeStock(initialState, "p2", 30, "receive", "Alex Morgan", time);
+    expect(s.activities[0]?.amount).toBeCloseTo(30 * 0.79);
+  });
+  it("approving a purchase order logs its cost as spent", () => {
+    const s = approveOrder(initialState, "PO-1042", "Alex Morgan", time);
+    expect(s.activities[0]?.action).toBe("Purchase order approved");
+    expect(s.activities[0]?.amount).toBeCloseTo(48 * 0.79 + 24 * 1.15);
+  });
+  it("received orders still count against the budget", () => {
+    const approved = approveOrder(initialState, "PO-1042", "Alex Morgan", time);
+    const s = receiveOrder(approved, "PO-1042", "Alex Morgan", time);
+    const committed = s.orders.reduce((n, o) => n + orderCost(s, o), 0);
+    expect(committed).toBeCloseTo(
+      initialState.orders.reduce((n, o) => n + orderCost(initialState, o), 0),
+    );
+    expect(s.activities[0]?.action).toBe("Purchase order received");
+    expect(s.activities[0]?.amount).toBeCloseTo(48 * 0.79 + 24 * 1.15);
   });
 });

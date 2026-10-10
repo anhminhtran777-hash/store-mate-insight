@@ -31,6 +31,7 @@ export type Activity = {
   action: string;
   before?: number | undefined;
   after?: number | undefined;
+  amount?: number | undefined;
   time: string;
 };
 export type Order = {
@@ -214,11 +215,18 @@ export function changeStock(
         action: mode === "receive" ? "Stock received" : "Stock sold",
         before: p.stock,
         after: stock,
+        amount: mode === "receive" ? quantity * p.cost : undefined,
         time,
       },
       ...state.activities,
     ],
   };
+}
+export function orderCost(state: StoreState, order: Order): number {
+  return order.lines.reduce(
+    (n, l) => n + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
+    0,
+  );
 }
 export function approveOrder(
   state: StoreState,
@@ -228,11 +236,12 @@ export function approveOrder(
 ): StoreState {
   const order = state.orders.find((o) => o.id === id);
   if (!order || order.status !== "Draft") return state;
+  const amount = orderCost(state, order);
   return {
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
     activities: [
-      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", time },
+      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", amount, time },
       ...state.activities,
     ],
   };
@@ -249,8 +258,20 @@ export function receiveOrder(
     (s, line) => changeStock(s, line.productId, line.quantity, "receive", actor, time),
     state,
   );
+  const amount = orderCost(state, order);
   return {
     ...updated,
     orders: updated.orders.map((o) => (o.id === id ? { ...o, status: "Received" } : o)),
+    activities: [
+      {
+        id: `${time}-${id}-received`,
+        product: id,
+        actor,
+        action: "Purchase order received",
+        amount,
+        time,
+      },
+      ...updated.activities,
+    ],
   };
 }
