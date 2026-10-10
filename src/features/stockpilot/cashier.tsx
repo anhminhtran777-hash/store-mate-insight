@@ -67,7 +67,7 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
       <dl className="business-details">
         <div><dt>{delivery ? "Received on" : "Approved on"}</dt><dd>{date}</dd></div>
         <div><dt>Purchase order</dt><dd>{doc.reference}</dd></div>
-        <div><dt>Order created</dt><dd>{order ? new Date(`${order.date}T12:00:00`).toLocaleDateString("en-US", { dateStyle: "medium" }) : "Not recorded"}</dd></div>
+        <div><dt>Order created</dt><dd>{order?.date ?? "Not recorded"}</dd></div>
         <div><dt>{delivery ? "Receiving officer" : "Authorized by"}</dt><dd>{doc.actor}</dd></div>
       </dl>
       <table>
@@ -127,7 +127,7 @@ export function DocumentDialog({
   };
   return (
     <Dialog open={!!doc} onOpenChange={(o) => !o && close()}>
-      <DialogContent className={`doc-dialog ${doc?.kind === "Receipt" ? "doc-dialog-receipt" : "doc-dialog-business"}`}>
+      <DialogContent className={`doc-dialog print:translate-x-0 print:translate-y-0 print:transform-none print:animate-none ${doc?.kind === "Receipt" ? "doc-dialog-receipt" : "doc-dialog-business"}`}>
         <DialogHeader>
           <DialogTitle>{doc?.kind}</DialogTitle>
           <DialogDescription>{doc?.reference}</DialogDescription>
