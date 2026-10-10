@@ -53,6 +53,7 @@ import {
 } from "./model";
 import { ProductCharts } from "./charts";
 import { Assistant } from "./assistant";
+import { AppearanceSettings } from "./appearance";
 import cola from "@/assets/cola.jpg";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
@@ -1075,8 +1076,15 @@ function Dashboard() {
 function StoreSettings() {
   const { storeName, setStoreName, user, setUser, pinned, setPinned } = useStockPilot();
   const [saved, setSaved] = useState(false);
+  const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
     <section className="settings-section">
+      <div className="settings-tabs" role="tablist" aria-label="Settings">
+        <Button id="profile-tab" role="tab" aria-selected={tab === "profile"} aria-controls="settings-panel" variant="ghost" onClick={() => setTab("profile")}>Store profile</Button>
+        <Button id="appearance-tab" role="tab" aria-selected={tab === "appearance"} aria-controls="settings-panel" variant="ghost" onClick={() => setTab("appearance")}>Appearance</Button>
+      </div>
+      <div id="settings-panel" role="tabpanel" aria-labelledby={`${tab}-tab`}>
+      {tab === "appearance" ? <AppearanceSettings /> : <>
       <h2>Store profile</h2>
       <form
         className="product-form"
@@ -1109,6 +1117,8 @@ function StoreSettings() {
           )}
         </div>
       </form>
+      </>}
+      </div>
       <div className="settings-note">
         <Store size={18} />
         <div>
