@@ -101,3 +101,21 @@ describe("StockPilot inventory demo", () => {
     expect(s.activities[0]?.amount).toBeCloseTo(48 * 0.79 + 24 * 1.15);
   });
 });
+
+import { removeStock as _rm, ean13 as _ean, initialState as _init } from "./model";
+describe("stock removal and supplier returns", () => {
+  it("removes stock with a reason and logs the loss at cost", () => {
+    const s = _rm(_init(), "p1", 4, "remove", "Damaged", "Alex", "t");
+    expect(s.products.find((p) => p.id === "p1")?.stock).toBe(44);
+    expect(s.activities[0]).toMatchObject({ reason: "Damaged", flow: "out", amount: 3.4 });
+  });
+  it("returns to supplier as a refund and refuses blank reasons or excess", () => {
+    const s = _rm(_init(), "p1", 2, "return", "Defective", "Alex", "t");
+    expect(s.activities[0]).toMatchObject({ flow: "refund", amount: 1.7 });
+    expect(_rm(_init(), "p1", 2, "return", "", "A", "t").activities.length).toBe(_init().activities.length);
+    expect(_rm(_init(), "p1", 999, "remove", "x", "A", "t").products[0]?.stock).toBe(48);
+  });
+  it("builds valid EAN-13 barcodes", () => {
+    expect(_ean("400638133393")).toBe("4006381333931");
+  });
+});

@@ -2283,3 +2283,8 @@
     scroll-behavior: auto !important;
   }
 }
+
+.barcode-line { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+.barcode-bars { display: inline-flex; gap: 1px; height: 18px; }
+.barcode-bars i { display: block; background: var(--foreground); }
+.barcode-line code { font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted-foreground); }
