@@ -2299,6 +2299,7 @@
 .cashier-item strong { font-size: 0.82rem; }
 .cashier-item small { font-size: 0.72rem; color: var(--muted-foreground); }
 .cashier-code { position: absolute; top: 0.5rem; right: 0.55rem; font: 600 0.7rem ui-monospace, monospace; padding: 0.05rem 0.4rem; border-radius: 0.4rem; background: var(--muted); color: var(--foreground); }
+.cashier-barcode { font: 500 0.65rem ui-monospace, monospace; color: var(--muted-foreground); letter-spacing: 0.02em; }
 .cashier-sale { position: sticky; top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--card); }
 .cashier-display { padding: 0.75rem 1rem; border-radius: 0.7rem; background: var(--sidebar, var(--muted)); color: var(--sidebar-foreground, var(--foreground)); text-align: right; }
 .cashier-display span { display: block; font: 600 1.6rem ui-monospace, monospace; }
