@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest';
+import { initialState, changeStock, approveOrder, receiveOrder, trendColor, isLowStock } from './model';
+const time = '2026-10-10T09:30:00Z';
+describe('StockPilot inventory demo', () => {
+ it('receiving stock updates quantity, October history, receipts and who changed it', () => {
+  const s = changeStock(initialState, 'p1', 24, 'receive', 'Alex Morgan', time);
+  expect(s.products[0].stock).toBe(72);
+  expect(s.products[0].history[5]).toBe(72);
+  expect(s.products[0].received[5]).toBe(156);
+  expect(s.activities[0]).toMatchObject({ actor: 'Alex Morgan', before: 48, after: 72, time });
+ });
+ it('selling stock updates quantity and sales without permitting negative stock', () => {
+  const s = changeStock(initialState, 'p1', 12, 'sell', 'Jamie Lee', time);
+  expect(s.products[0].stock).toBe(36);
+  expect(s.products[0].sold[5]).toBe(164);
+  expect(changeStock(s, 'p1', 37, 'sell', 'Jamie Lee', time)).toBe(s);
+ });
+ it('draft approval changes order status but not stock', () => {
+  const s = approveOrder(initialState, 'PO-1042', 'Alex Morgan', time);
+  expect(s.orders[0].status).toBe('Approved');
+  expect(s.products[1].stock).toBe(18);
+  expect(s.activities[0].action).toBe('Purchase order approved');
+ });
+ it('receiving approved order adds each line once', () => {
+  const approved = approveOrder(initialState, 'PO-1042', 'Alex Morgan', time);
+  const s = receiveOrder(approved, 'PO-1042', 'Alex Morgan', time);
+  expect(s.products[1].stock).toBe(66);
+  expect(s.products[3].stock).toBe(60);
+  expect(s.orders[0].status).toBe('Received');
+  expect(receiveOrder(s, 'PO-1042', 'Alex Morgan', time)).toBe(s);
+ });
+ it('draft orders cannot be received before approval', () => {
+  expect(receiveOrder(initialState, 'PO-1042', 'Alex Morgan', time)).toBe(initialState);
+ });
+ it('downward chart segments use the red destructive token', () => {
+  expect(trendColor(82, 68)).toBe('var(--destructive)');
+  expect(trendColor(36, 62)).toBe('var(--primary)');
+ });
+ it('low stock excludes archived products and follows product reorder point', () => {
+  expect(isLowStock(initialState.products[1])).toBe(true);
+  expect(isLowStock(initialState.products[0])).toBe(false);
+  expect(isLowStock({ ...initialState.products[1], archived: true })).toBe(false);
+ });
+});
