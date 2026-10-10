@@ -22,7 +22,7 @@ export type Product = {
   sku: string;
   barcode: string;
   /** Extra scan codes that also belong to this product (a product is not limited to one barcode). */
-  barcodes?: string[];
+  barcodes?: string[] | undefined;
   emoji: string;
   archived?: boolean;
   history: number[];
