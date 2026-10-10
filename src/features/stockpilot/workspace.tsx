@@ -103,7 +103,7 @@ export function Logo() {
     </div>
   );
 }
-export function Workspace({ page = "Inventory" }: { page?: string }) {
+export function Workspace({ page = "Inventory", settingsTab }: { page?: string; settingsTab?: "profile" | "appearance" }) {
   const { state, user, role, storeName, pinned, setPinned, budget } = useStockPilot();
   const manager = role === "Manager";
   const allowed = canAccessPage(role, page);
@@ -411,7 +411,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
           {allowed && page === "Documents" && <Documents />}
           {allowed && page === "Reports" && <ReportsPanel />}
           {allowed && page === "Activity Log" && <ActivityTable />}
-          {page === "Settings" && <StoreSettings />}
+          {page === "Settings" && <StoreSettings initialTab={settingsTab} />}
           <footer className="page-footer">
             <span>
               <Leaf size={12} /> A little more control. A lot less guesswork.
@@ -1324,12 +1324,12 @@ function Dashboard() {
     </>
   );
 }
-function StoreSettings() {
+function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "appearance" }) {
   const { storeName, setStoreName, user, setUser, role, pinned, setPinned, budget, setBudget } =
     useStockPilot();
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<"profile" | "appearance">("profile");
+  const [tab, setTab] = useState<"profile" | "appearance">(initialTab);
   return (
     <section className="settings-section">
       <div className="settings-tabs" role="tablist" aria-label="Settings">
