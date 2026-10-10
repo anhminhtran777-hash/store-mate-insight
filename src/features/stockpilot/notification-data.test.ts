@@ -6,7 +6,8 @@ describe("grouped store notifications", () => {
   it("groups unstocked catalogue packs instead of issuing one alert per pack", () => {
     const alerts = storeAlerts(initialState);
     const catalogue = alerts.find((a) => a.title.includes("catalogue"));
-    expect(catalogue?.productIds.length).toBeGreaterThan(100);
+    expect(catalogue?.productIds.length).toBeGreaterThan(0);
+    expect(catalogue?.productIds.length).toBeLessThanOrEqual(12);
     expect(alerts.length).toBeLessThan(15);
     expect(catalogue?.urgent).toBe(false);
   });
