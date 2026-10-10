@@ -23,6 +23,8 @@ export type Product = {
   barcode: string;
   /** Extra scan codes that also belong to this product (a product is not limited to one barcode). */
   barcodes?: string[] | undefined;
+  /** Units in one wholesale stack/case; undefined means the item is only ordered by unit. */
+  caseSize?: number | undefined;
   emoji: string;
   archived?: boolean;
   history: number[];
