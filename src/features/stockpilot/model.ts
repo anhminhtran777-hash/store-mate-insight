@@ -23,6 +23,8 @@ export type Product = {
   barcode: string;
   /** Extra scan codes that also belong to this product (a product is not limited to one barcode). */
   barcodes?: string[] | undefined;
+  /** Units in one wholesale stack/case; undefined means the item is only ordered by unit. */
+  caseSize?: number | undefined;
   emoji: string;
   archived?: boolean;
   history: number[];
@@ -125,6 +127,8 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   barcode: ean13(`500123${String(100000 + i * 7919).slice(-6)}`),
   // Coca-Cola Original also scans under its manufacturer barcode.
   barcodes: i === 0 ? ["5449000000996"] : undefined,
+  // Demo items can be wholesaled by the stack; beverages ship in bigger cases.
+  caseSize: r[2] === "Beverages" ? 24 : 12,
   history:
     i === 0
       ? [36, 62, 54, 82, 68, 48]
@@ -132,6 +136,22 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   received: [120, 156, 144, 180, 168, 132].map((n) => Math.round(n / (1 + i * 0.3))),
   sold: [108, 130, 152, 152, 182, 152].map((n) => Math.round(n / (1 + i * 0.3))),
 }));
+/** Units per wholesale stack for a catalogue pack, estimated from its pack size. */
+export function catalogueCaseSize(size: string): number {
+  const s = size.toLowerCase();
+  if (s.includes("glass bottle")) return 20;
+  if (s.includes("can")) return 24;
+  const ml = /(\d+(?:\.\d+)?)\s*(ml|l)\b/.exec(s);
+  const liters = ml ? (ml[2] === "l" ? Number(ml[1]) : Number(ml[1]) / 1000) : 0;
+  if (liters >= 1.5) return 6;
+  if (liters >= 0.75) return 12;
+  if (liters > 0) return 24;
+  return 6; // coffee bags, spirits and other non-liter packs
+}
+/** Total units when ordering whole stacks of a product. */
+export function stackUnits(product: Product, stacks: number): number {
+  return Math.max(0, Math.round(stacks)) * (product.caseSize ?? 1);
+}
 // Catalogue-only packs start empty: requesting goods does not imply they are on the shelf.
 export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCatalogue.map((entry, i): Product => ({
   id: `cch-bg-${entry.key}`,
@@ -145,6 +165,7 @@ export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCata
   price: Math.round(entry.cost * 1.8 * 100) / 100,
   sku: `CCBG-${entry.key.toUpperCase()}`,
   barcode: ean13(`299${String(i + 1).padStart(9, "0")}`),
+  caseSize: catalogueCaseSize(entry.size),
   emoji: entry.name.startsWith("Bankya") || entry.name.startsWith("Rosa") ? "💧" : "🥤",
   history: [0, 0, 0, 0, 0, 0],
   received: [0, 0, 0, 0, 0, 0],

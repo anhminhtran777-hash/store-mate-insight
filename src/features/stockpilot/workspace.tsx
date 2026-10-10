@@ -62,6 +62,7 @@ import {
   supplierDocuments,
   orderCost,
   createPurchaseRequest,
+  stackUnits,
   type Product,
 } from "./model";
 import { ProductCharts } from "./charts";
@@ -1025,10 +1026,23 @@ function Orders() {
             <div className="search-input"><Search size={16} /><input aria-label="Search supplier products" placeholder="Search products or pack sizes…" value={requestSearch} onChange={(e) => setRequestSearch(e.target.value)} /></div>
             <div className="table-overflow request-table">
               <table>
-                <thead><tr><th>Product</th><th>Unit cost</th><th>Quantity</th></tr></thead>
+                <thead><tr><th>Product</th><th>Unit cost</th><th>Stacks</th><th>Quantity</th></tr></thead>
                 <tbody>{supplierProducts.filter((p) => `${p.name} ${p.size} ${p.sku}`.toLowerCase().includes(requestSearch.toLowerCase())).map((p) => <tr key={p.id}>
                   <td><strong>{p.name}</strong><div className="text-xs text-muted-foreground">{p.size} · {p.sku} · {p.stock} in stock</div></td>
                   <td>{money(p.cost)}</td>
+                  <td>{p.caseSize ? (
+                    <div className="stack-picker">
+                      <input className="w-16 rounded-md border border-input bg-background px-2 py-2 text-foreground" aria-label={`Request stacks for ${p.name} (${p.size})`} type="number" min="0" step="1" placeholder="—"
+                        value={p.caseSize && (quantities[p.id] ?? "") !== "" && Number(quantities[p.id]) % p.caseSize === 0 ? String(Number(quantities[p.id]) / p.caseSize) : ""}
+                        onChange={(e) => { const stacks = e.target.value; setQuantities((q) => ({ ...q, [p.id]: stacks === "" ? "" : String(stackUnits(p, Number(stacks))) })); setRequestError(""); }} />
+                      <span className="text-xs text-muted-foreground">× {p.caseSize}</span>
+                      <div className="stack-layouts" role="group" aria-label={`Quick stack layouts for ${p.name}`}>
+                        {([[2, 2], [2, 3], [3, 3]] as [number, number][]).map(([w, h]) => (
+                          <button type="button" key={`${w}x${h}`} className="stack-layout" onClick={() => { setQuantities((q) => ({ ...q, [p.id]: String(stackUnits(p, w * h)) })); setRequestError(""); }}>{w}×{h}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : <span className="text-xs text-muted-foreground">Units only</span>}</td>
                   <td><input className="w-20 rounded-md border border-input bg-background px-2 py-2 text-foreground" aria-label={`Request quantity for ${p.name} (${p.size})`} type="number" min="1" step="1" value={quantities[p.id] ?? ""} placeholder="—" onChange={(e) => { setQuantities((q) => ({ ...q, [p.id]: e.target.value })); setRequestError(""); }} /></td>
                 </tr>)}</tbody>
               </table>

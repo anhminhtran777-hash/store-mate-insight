@@ -17,3 +17,4 @@
 - [x] Expand Coca-Cola Distribution with researched Bulgarian brands, variants and pack sizes; verify manual ordering.
 - [x] Remove the Coca-Cola product photo from the list, detail panel and login card.
 - [x] Scale the new purchase request window to the viewport so only the item list scrolls.
+- [x] Wholesale stack ordering in purchase requests (caseSize per product, stack input + 2x2/2x3/3x3 layout chips).
