@@ -2288,3 +2288,53 @@
 .barcode-bars { display: inline-flex; gap: 1px; height: 18px; }
 .barcode-bars i { display: block; background: var(--foreground); }
 .barcode-line code { font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted-foreground); }
+
+.cashier { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.25rem; align-items: start; }
+.cashier h3 { font-weight: 600; margin-bottom: 0.75rem; }
+.cashier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.6rem; }
+.cashier-item { position: relative; display: flex; flex-direction: column; gap: 0.2rem; text-align: left; padding: 0.75rem; border-radius: 0.8rem; border: 1px solid var(--border); background: var(--card); color: var(--card-foreground); transition: transform 0.12s, box-shadow 0.12s; }
+.cashier-item:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-chart, 0 4px 12px rgb(0 0 0 / 0.08)); }
+.cashier-item:disabled { opacity: 0.45; }
+.cashier-item strong { font-size: 0.82rem; }
+.cashier-item small { font-size: 0.72rem; color: var(--muted-foreground); }
+.cashier-code { position: absolute; top: 0.5rem; right: 0.55rem; font: 600 0.7rem ui-monospace, monospace; padding: 0.05rem 0.4rem; border-radius: 0.4rem; background: var(--muted); color: var(--foreground); }
+.cashier-sale { position: sticky; top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--card); }
+.cashier-display { padding: 0.75rem 1rem; border-radius: 0.7rem; background: var(--sidebar, var(--muted)); color: var(--sidebar-foreground, var(--foreground)); text-align: right; }
+.cashier-display span { display: block; font: 600 1.6rem ui-monospace, monospace; }
+.cashier-display small { font-size: 0.75rem; opacity: 0.8; }
+.cashier-cart { max-height: 180px; overflow: auto; font-size: 0.85rem; }
+.cashier-cart li { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: center; padding: 0.3rem 0; border-bottom: 1px dashed var(--border); }
+.cashier-cart button { color: var(--muted-foreground); }
+.cashier-total { display: flex; justify-content: space-between; font-size: 1.1rem; }
+.numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.numpad-key { padding: 0.65rem 0; border-radius: 0.6rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); font: 600 1rem ui-monospace, monospace; }
+.numpad-key:active { transform: scale(0.97); }
+.numpad-enter { grid-row: span 2; background: var(--primary); color: var(--primary-foreground); font-size: 0.8rem; }
+.numpad-zero { grid-column: span 3; }
+.numpad-help { display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--muted-foreground); }
+.numpad-help div { display: flex; justify-content: space-between; gap: 0.5rem; }
+.numpad-help dt { font-weight: 600; color: var(--foreground); }
+.doc-dialog { max-width: 520px; }
+.doc-sheet { padding: 1.25rem; border: 1px solid var(--border); border-radius: 0.6rem; background: var(--background); color: var(--foreground); font-size: 0.85rem; }
+.doc-receipt { font-family: ui-monospace, monospace; max-width: 340px; margin: 0 auto; }
+.doc-sheet header { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.75rem; text-align: center; }
+.doc-sheet header span { font-size: 0.75rem; color: var(--muted-foreground); }
+.doc-sheet table { width: 100%; border-collapse: collapse; }
+.doc-sheet th, .doc-sheet td { padding: 0.25rem 0.2rem; text-align: right; border-bottom: 1px dashed var(--border); }
+.doc-sheet th:first-child, .doc-sheet td:first-child { text-align: left; }
+.doc-sheet footer { margin-top: 0.75rem; display: grid; gap: 0.2rem; }
+.doc-sheet footer div { display: flex; justify-content: space-between; }
+.doc-sheet footer p { text-align: center; margin-top: 0.5rem; color: var(--muted-foreground); }
+.doc-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.doc-email { display: flex; gap: 0.4rem; flex: 1; }
+.doc-email input { flex: 1; min-width: 0; padding: 0 0.6rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--background); }
+.documents { display: grid; gap: 1rem; }
+.doc-list { display: grid; gap: 0.5rem; }
+.doc-list button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 0.75rem; align-items: center; text-align: left; padding: 0.8rem 1rem; border: 1px solid var(--border); border-radius: 0.8rem; background: var(--card); }
+.doc-list small { display: block; font-size: 0.75rem; color: var(--muted-foreground); }
+@media (max-width: 1100px) { .cashier { grid-template-columns: 1fr; } }
+@media print {
+  body.printing-doc * { visibility: hidden !important; }
+  body.printing-doc .doc-sheet, body.printing-doc .doc-sheet * { visibility: visible !important; color: #000 !important; }
+  body.printing-doc .doc-sheet { position: fixed; inset: 0 auto auto 0; width: 100%; border: none; background: #fff !important; }
+}

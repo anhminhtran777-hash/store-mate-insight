@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as CashierRouteImport } from './routes/cashier'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -32,9 +34,19 @@ const AssistantRoute = AssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CashierRoute = CashierRouteImport.update({
+  id: '/cashier',
+  path: '/cashier',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsRoute = DocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -57,7 +69,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/assistant': typeof AssistantRoute
+  '/cashier': typeof CashierRoute
   '/dashboard': typeof DashboardRoute
+  '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
@@ -66,7 +80,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/assistant': typeof AssistantRoute
+  '/cashier': typeof CashierRoute
   '/dashboard': typeof DashboardRoute
+  '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
@@ -76,7 +92,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/assistant': typeof AssistantRoute
+  '/cashier': typeof CashierRoute
   '/dashboard': typeof DashboardRoute
+  '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
@@ -87,7 +105,9 @@ export interface FileRouteTypes {
     | '/'
     | '/activity'
     | '/assistant'
+    | '/cashier'
     | '/dashboard'
+    | '/documents'
     | '/login'
     | '/orders'
     | '/settings'
@@ -96,7 +116,9 @@ export interface FileRouteTypes {
     | '/'
     | '/activity'
     | '/assistant'
+    | '/cashier'
     | '/dashboard'
+    | '/documents'
     | '/login'
     | '/orders'
     | '/settings'
@@ -105,7 +127,9 @@ export interface FileRouteTypes {
     | '/'
     | '/activity'
     | '/assistant'
+    | '/cashier'
     | '/dashboard'
+    | '/documents'
     | '/login'
     | '/orders'
     | '/settings'
@@ -115,7 +139,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
   AssistantRoute: typeof AssistantRoute
+  CashierRoute: typeof CashierRoute
   DashboardRoute: typeof DashboardRoute
+  DocumentsRoute: typeof DocumentsRoute
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRoute
   SettingsRoute: typeof SettingsRoute
@@ -144,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cashier': {
+      id: '/cashier'
+      path: '/cashier'
+      fullPath: '/cashier'
+      preLoaderRoute: typeof CashierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents': {
+      id: '/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof DocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -179,7 +219,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
   AssistantRoute: AssistantRoute,
+  CashierRoute: CashierRoute,
   DashboardRoute: DashboardRoute,
+  DocumentsRoute: DocumentsRoute,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRoute,
   SettingsRoute: SettingsRoute,

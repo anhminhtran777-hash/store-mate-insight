@@ -9,6 +9,7 @@ import {
   isLowStock,
   restockQuantity,
   orderCost,
+  checkout,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("StockPilot inventory demo", () => {
@@ -120,5 +121,23 @@ describe("stock removal and supplier returns", () => {
   });
   it("builds valid EAN-13 barcodes", () => {
     expect(_ean("400638133393")).toBe("4006381333931");
+  });
+});
+
+describe("cashier checkout and supplier documents", () => {
+  it("sells a cart, lowers stock and issues a receipt with change", () => {
+    const r = checkout(initialState, [{ productId: "p1", quantity: 2 }], "Cash", 5, "Alex", time, "R-1");
+    expect(r.state.products[0]?.stock).toBe(46);
+    expect(r.receipt?.total).toBeCloseTo(3.58);
+    expect(r.state.documents[0]?.kind).toBe("Receipt");
+  });
+  it("rejects cash that does not cover the total or more than in stock", () => {
+    expect(checkout(initialState, [{ productId: "p1", quantity: 2 }], "Cash", 1, "A", time, "R").receipt).toBeUndefined();
+    expect(checkout(initialState, [{ productId: "p1", quantity: 99 }], "Card", undefined, "A", time, "R").receipt).toBeUndefined();
+  });
+  it("approving and receiving an order files a purchase order and a delivery note", () => {
+    const a = approveOrder(initialState, "PO-1042", "A", time);
+    const b = receiveOrder(a, "PO-1042", "A", time);
+    expect(b.documents.map((d) => d.kind)).toEqual(["Delivery note", "Purchase order"]);
   });
 });
