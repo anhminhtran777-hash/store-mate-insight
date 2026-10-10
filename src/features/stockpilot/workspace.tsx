@@ -1331,6 +1331,13 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance" | ExtraTab>(initialTab);
+  const [startPage, setStartPage] = useState("Dashboard");
+  const [chartPeriod, setChartPeriod] = useState("Monthly");
+  const [sortBy, setSortBy] = useState("Name (A–Z)");
+  const [perPage, setPerPage] = useState("24");
+  const [compact, setCompact] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(true);
+  const [tooltips, setTooltips] = useState(true);
   return (
     <section className="settings-section">
       <div className="settings-tabs flex-wrap" role="tablist" aria-label="Settings">
@@ -1370,10 +1377,47 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
           Currency
           <input value="USD — US Dollar (demo)" readOnly />
         </label>
+        <h3 className="settings-subhead">Workspace preferences</h3>
+        <label>
+          Start page after sign-in
+          <select value={startPage} onChange={(e) => setStartPage(e.target.value)}>
+            {["Dashboard", "Inventory", "Cashier", "Purchase orders", "Documents", "Activity log"].map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </label>
+        <label>
+          Default chart period
+          <select value={chartPeriod} onChange={(e) => setChartPeriod(e.target.value)}>
+            {["Daily", "Weekly", "Monthly", "Yearly"].map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </label>
+        <label>
+          Sort products by
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            {["Name (A–Z)", "Stock: low first", "Stock: high first", "Price: low first", "Price: high first", "Recently changed"].map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </label>
+        <label>
+          Products per page
+          <select value={perPage} onChange={(e) => setPerPage(e.target.value)}>
+            {["12", "24", "48", "All"].map((o) => <option key={o}>{o}</option>)}
+          </select>
+        </label>
         <div className="settings-check">
           <label>
             <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} />
             Keep inventory sidebar pinned
+          </label>
+          <label>
+            <input type="checkbox" checked={compact} onChange={(e) => setCompact(e.target.checked)} />
+            Compact tables and lists
+          </label>
+          <label>
+            <input type="checkbox" checked={confirmLeave} onChange={(e) => setConfirmLeave(e.target.checked)} />
+            Ask before discarding unsaved forms
+          </label>
+          <label>
+            <input type="checkbox" checked={tooltips} onChange={(e) => setTooltips(e.target.checked)} />
+            Show helpful tips on buttons and fields
           </label>
         </div>
         <div className="flex gap-4 items-center">

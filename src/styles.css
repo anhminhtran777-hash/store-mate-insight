@@ -2537,3 +2537,11 @@
   color: var(--muted-foreground); font-size: 0.7rem; padding: 0.15rem 0.4rem; cursor: pointer;
 }
 .stack-layout:hover { border-color: var(--primary); color: var(--primary); }
+.settings-subhead {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
