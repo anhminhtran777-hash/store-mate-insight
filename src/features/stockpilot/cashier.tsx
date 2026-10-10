@@ -305,7 +305,8 @@ export function Cashier() {
             >
               <span className="cashier-code">{code(p.id)}</span>
               <span>{p.emoji}</span>
-              <strong>{p.name}</strong>
+               <strong>{p.name}</strong>
+               <small>{p.size}</small>
               <small>
                 {money(p.price)} · {p.stock} left
               </small>
@@ -324,7 +325,7 @@ export function Cashier() {
             return (
               <li key={c.productId}>
                 <span>
-                  {c.quantity} × {p?.name}
+                   {c.quantity} × {p?.name} ({p?.size})
                 </span>
                 <span>{money(c.quantity * (p?.price ?? 0))}</span>
                 <button
