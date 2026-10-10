@@ -1,102 +1,212 @@
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarDays,
+  ChartNoAxesCombined,
+  Package,
+  Layers,
+} from "lucide-react";
 import { money, trendColor, type Product } from "./model";
+import { chartDate, dailyChartData, type DailyChartPoint } from "./chart-data";
+
 const months = ["May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+type Metric = "stock" | "value" | "received";
 function TrendChart({
-  values,
-  bars,
-  secondary,
+  points,
+  metric,
+  active,
+  onActive,
 }: {
-  values: number[];
-  bars?: boolean;
-  secondary?: number[];
+  points: DailyChartPoint[];
+  metric: Metric;
+  active: number | null;
+  onActive: (index: number | null) => void;
 }) {
-  const max = Math.max(1, ...values, ...(secondary || [])) * 1.2;
-  const y = (v: number) => 112 - (v / max) * 90;
-  const x = (i: number) => 35 + i * 43;
+  const id = useId().replace(/:/g, "");
+  const bars = metric === "received";
+  const max =
+    Math.max(
+      1,
+      ...points.map((point) => point[metric]),
+      ...(bars ? points.map((point) => point.sold) : []),
+    ) * 1.18;
+  const x = (index: number) => 36 + (index / Math.max(1, points.length - 1)) * 272;
+  const y = (value: number) => 158 - (value / max) * 132;
+  const selected = active === null ? undefined : points[active];
+  const format = (value: number) => (metric === "value" ? money(value) : `${value} units`);
   return (
-    <svg
-      viewBox="0 0 280 145"
-      className="trend-chart"
-      role="img"
-      aria-label={
-        bars ? "Monthly stock received and sold chart" : "Six-month trend; decreases shown in red"
-      }
-    >
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          <line x1="29" y1={22 + i * 45} x2="267" y2={22 + i * 45} className="chart-grid" />
-          <text x="0" y={26 + i * 45} className="chart-label">
-            {Math.round(max * (1 - i / 2))}
-          </text>
-        </g>
-      ))}
-      {!bars && (
-        <path
-          d={`M${x(0)},112 ${values.map((v, i) => `L${x(i)},${y(v)}`).join(" ")} L${x(5)},112 Z`}
-          className="chart-area"
-        />
-      )}
-      {values.map((v, i) => (
-        <g
-          key={i}
-          aria-label={`${months[i]}: ${v}${bars ? ` received, ${secondary?.[i] ?? 0} sold` : ""}`}
+    <div className="chart-plot">
+      <svg
+        viewBox="0 0 324 190"
+        className="trend-chart"
+        role="img"
+        tabIndex={0}
+        aria-label={`${bars ? "Daily received and sold" : metric === "stock" ? "Daily stock levels" : "Daily inventory value"}; May 1 to October 10, 2026. Illustrative demo values. Use arrow keys to inspect dates.`}
+        onPointerMove={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          const position = ((event.clientX - bounds.left) / bounds.width) * 324;
+          onActive(
+            Math.max(
+              0,
+              Math.min(
+                points.length - 1,
+                Math.round(((position - 36) / 272) * (points.length - 1)),
+              ),
+            ),
+          );
+        }}
+        onPointerLeave={() => onActive(null)}
+        onFocus={() => onActive(points.length - 1)}
+        onBlur={() => onActive(null)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            onActive(
+              Math.max(
+                0,
+                Math.min(
+                  points.length - 1,
+                  (active ?? points.length - 1) + (event.key === "ArrowLeft" ? -1 : 1),
+                ),
+              ),
+            );
+          }
+          if (event.key === "Escape") onActive(null);
+        }}
+      >
+        <defs>
+          <linearGradient id={`${id}-area`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--chart-area-top)" />
+            <stop offset="100%" stopColor="var(--chart-area-bottom)" />
+          </linearGradient>
+        </defs>
+        {[0, 1, 2, 3].map((index) => (
+          <g key={index}>
+            <line
+              x1="36"
+              y1={26 + index * 44}
+              x2="308"
+              y2={26 + index * 44}
+              className="chart-grid"
+            />
+            <text x="29" y={30 + index * 44} textAnchor="end" className="chart-label">
+              {metric === "value"
+                ? `$${Math.round(max * (1 - index / 3))}`
+                : Math.round(max * (1 - index / 3))}
+            </text>
+          </g>
+        ))}
+        {!bars && (
+          <path
+            d={`M36,158 ${points.map((point, index) => `L${x(index)},${y(point[metric])}`).join(" ")} L308,158 Z`}
+            fill={`url(#${id}-area)`}
+          />
+        )}
+        {points.map((point, index) => {
+          const previous = points[index - 1];
+          return (
+            <g key={point.date}>
+              {bars ? (
+                <>
+                  <rect
+                    x={x(index) - 0.65}
+                    y={y(point.received)}
+                    width=".85"
+                    height={158 - y(point.received)}
+                    rx=".4"
+                    fill={
+                      previous ? trendColor(previous.received, point.received) : "var(--primary)"
+                    }
+                  />
+                  <rect
+                    x={x(index) + 0.3}
+                    y={y(point.sold)}
+                    width=".85"
+                    height={158 - y(point.sold)}
+                    rx=".4"
+                    fill={
+                      previous && point.sold < previous.sold
+                        ? "var(--destructive)"
+                        : "var(--chart-sold)"
+                    }
+                  />
+                </>
+              ) : (
+                previous && (
+                  <line
+                    x1={x(index - 1)}
+                    y1={y(previous[metric])}
+                    x2={x(index)}
+                    y2={y(point[metric])}
+                    stroke={trendColor(previous[metric], point[metric])}
+                    strokeWidth="2.3"
+                    strokeLinecap="round"
+                  />
+                )
+              )}
+              {point.date.endsWith("-01") && (
+                <text x={x(index)} y="181" textAnchor="middle" className="chart-label">
+                  {months[Number(point.date.slice(5, 7)) - 5]}
+                </text>
+              )}
+            </g>
+          );
+        })}
+        {selected && active !== null && (
+          <g className="chart-active-marker">
+            <line x1={x(active)} x2={x(active)} y1="18" y2="158" className="chart-crosshair" />
+            <circle cx={x(active)} cy={y(selected[metric])} r="5" className="chart-focus-point" />
+            {bars && (
+              <circle cx={x(active)} cy={y(selected.sold)} r="4" className="chart-focus-sold" />
+            )}
+          </g>
+        )}
+      </svg>
+      {selected && (
+        <div
+          className="chart-tooltip"
+          role="tooltip"
+          style={{
+            left: `${Math.max(26, Math.min(74, ((active ?? 0) / (points.length - 1)) * 100))}%`,
+          }}
         >
+          <div className="chart-tooltip-date">
+            <CalendarDays size={12} />
+            {chartDate(selected.date)}
+          </div>
           {bars ? (
             <>
-              <rect
-                x={x(i) - 9}
-                y={y(v)}
-                width="8"
-                height={112 - y(v)}
-                rx="2"
-                className="bar-received"
-                fill={i > 0 && v < (values[i - 1] ?? v) ? "var(--destructive)" : "var(--primary)"}
-              />
-              <rect
-                x={x(i) + 2}
-                y={y(secondary?.[i] || 0)}
-                width="8"
-                height={112 - y(secondary?.[i] || 0)}
-                rx="2"
-                className="bar-sold"
-                fill={
-                  i > 0 && (secondary?.[i] ?? 0) < (secondary?.[i - 1] ?? 0)
-                    ? "var(--destructive)"
-                    : "var(--chart-sold)"
-                }
-              />
+              <div>
+                <span>
+                  <i className="received-key" />
+                  Received
+                </span>
+                <strong>{selected.received} units</strong>
+              </div>
+              <div>
+                <span>
+                  <i className="sold-key" />
+                  Sold
+                </span>
+                <strong>{selected.sold} units</strong>
+              </div>
             </>
           ) : (
-            <>
-              {i > 0 && (
-                <line
-                  x1={x(i - 1)}
-                  y1={y(values[i - 1] ?? v)}
-                  x2={x(i)}
-                  y2={y(v)}
-                  stroke={trendColor(values[i - 1] ?? v, v)}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              )}
-              <circle
-                cx={x(i)}
-                cy={y(v)}
-                r="3"
-                fill={i > 0 ? trendColor(values[i - 1] ?? v, v) : "var(--primary)"}
-              />
-            </>
+            <div>
+              <span>{metric === "stock" ? "On hand" : "At cost"}</span>
+              <strong>{format(selected[metric])}</strong>
+            </div>
           )}
-          <text x={x(i)} y="137" textAnchor="middle" className="chart-label">
-            {months[i]}
-          </text>
-        </g>
-      ))}
-    </svg>
+          <small>Illustrative daily demo</small>
+        </div>
+      )}
+    </div>
   );
 }
 export function ProductCharts({ product }: { product: Product }) {
-  const values = product.history.map((v) => Math.round(v * product.cost));
+  const [active, setActive] = useState<number | null>(null);
+  const points = dailyChartData(product);
   const diff = (product.history[5] ?? product.stock) - (product.history[4] ?? product.stock);
   return (
     <div className="charts-grid">
@@ -105,57 +215,65 @@ export function ProductCharts({ product }: { product: Product }) {
         value={`${product.stock}`}
         suffix="units on hand"
         diff={diff}
+        icon={<Package size={14} />}
       >
-        <TrendChart values={product.history} />
+        <TrendChart points={points} metric="stock" active={active} onActive={setActive} />
       </ChartBlock>
       <ChartBlock
         title="Received vs. sold"
-        value={`${product.received[5]}`}
+        value={`${product.received[5] ?? 0}`}
         suffix="received this month"
-        legend
+        icon={<Layers size={14} />}
       >
-        <TrendChart values={product.received} secondary={product.sold} bars />
+        <TrendChart points={points} metric="received" active={active} onActive={setActive} />
       </ChartBlock>
       <ChartBlock
         title="Inventory value"
         value={money(product.stock * product.cost)}
         suffix="at cost"
-        diff={diff}
+        diff={diff * product.cost}
+        currency
+        icon={<ChartNoAxesCombined size={14} />}
       >
-        <TrendChart values={values} />
+        <TrendChart points={points} metric="value" active={active} onActive={setActive} />
       </ChartBlock>
     </div>
   );
 }
-import type { ReactNode } from "react";
 function ChartBlock({
   title,
   value,
   suffix,
   diff,
+  currency,
   children,
-  legend,
+  icon,
 }: {
   title: string;
   value: string;
   suffix: string;
   diff?: number;
+  currency?: boolean;
   children: ReactNode;
-  legend?: boolean;
+  icon: ReactNode;
 }) {
   return (
     <section className="chart-block">
-      <div className="flex items-center justify-between">
-        <h3>{title}</h3>
+      <div className="chart-block-heading">
+        <h3>
+          <span className="chart-icon">{icon}</span>
+          {title}
+        </h3>
         <span className="chart-period">6 months</span>
       </div>
       <div className="chart-number">
-        {value} <span>{suffix}</span>
+        {value}
+        <span>{suffix}</span>
       </div>
       {diff !== undefined ? (
         <div className={`chart-change ${diff < 0 ? "negative" : "positive"}`}>
           {diff < 0 ? <ArrowDownRight size={13} /> : <ArrowUpRight size={13} />}
-          {Math.abs(diff)} units vs. last month
+          {currency ? money(Math.abs(diff)) : `${Math.abs(diff)} units`} vs. last month
         </div>
       ) : (
         <div className="chart-legend">
@@ -170,6 +288,10 @@ function ChartBlock({
         </div>
       )}
       {children}
+      <div className="chart-footer">
+        <span>May 1 – Oct 10, 2026</span>
+        <span>Daily · Demo</span>
+      </div>
     </section>
   );
 }

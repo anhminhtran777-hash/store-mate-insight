@@ -77,6 +77,10 @@
   --household-bg: oklch(0.949 0.025 308);
   --chart-fill: oklch(0.51 0.08 155 / 0.07);
   --chart-sold: oklch(0.75 0.06 152);
+  --chart-area-top: oklch(0.51 0.08 155 / 0.24);
+  --chart-area-bottom: oklch(0.51 0.08 155 / 0.015);
+  --chart-panel: linear-gradient(160deg, var(--card), var(--muted));
+  --shadow-chart: 0 3px 12px oklch(0.2 0.02 155 / 0.045);
   --shadow-floating: 0 12px 40px oklch(0.2 0.02 155 / 0.14);
 }
 @layer base {
@@ -950,17 +954,43 @@
 }
 .chart-block {
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 10px 6px;
+  border-radius: 8px;
+  padding: 14px 12px 8px;
   min-width: 0;
+  background: var(--chart-panel);
+  box-shadow: var(--shadow-chart);
+  position: relative;
+}
+.chart-block-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.chart-block-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 6px;
+  background: var(--secondary);
+  color: var(--primary);
+  flex-shrink: 0;
 }
 .chart-block h3 {
-  font-size: 9px;
-  font-weight: 550;
+  font-size: 10px;
+  font-weight: 650;
 }
 .chart-period {
-  font-size: 6px;
+  font-size: 9px;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 .chart-number {
   margin: 13px 0 5px;
@@ -986,8 +1016,91 @@
 .trend-chart {
   width: 100%;
   height: auto;
-  margin-top: 13px;
+  display: block;
+  margin-top: 16px;
   overflow: visible;
+  cursor: crosshair;
+  border-radius: 4px;
+}
+.trend-chart:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.chart-plot {
+  position: relative;
+}
+.chart-crosshair {
+  stroke: var(--muted-foreground);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chart-focus-point {
+  fill: var(--primary);
+  stroke: var(--card);
+  stroke-width: 2.5;
+}
+.chart-focus-sold {
+  fill: var(--chart-sold);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.chart-tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  min-width: 154px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow-floating);
+  font-size: 11px;
+}
+.chart-tooltip-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 650;
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+}
+.chart-tooltip > div:not(.chart-tooltip-date) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 5px;
+}
+.chart-tooltip span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted-foreground);
+}
+.chart-tooltip i {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+}
+.chart-tooltip small {
+  display: block;
+  margin-top: 7px;
+  font-size: 9px;
+  color: var(--muted-foreground);
+}
+.chart-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  font-size: 8px;
+  color: var(--muted-foreground);
 }
 .chart-grid {
   stroke: var(--border);
@@ -1026,6 +1139,14 @@
 }
 .sold-key {
   background: var(--chart-sold);
+}
+@media (max-width: 1100px) and (min-width: 651px) {
+  .chart-block-heading h3 {
+    flex-wrap: wrap;
+  }
+  .chart-block-heading .chart-period {
+    display: none;
+  }
 }
 .detail-bottom {
   display: flex;

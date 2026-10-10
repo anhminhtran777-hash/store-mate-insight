@@ -14,3 +14,4 @@
 - Share session-only demo state through a provider above the router outlet so product changes, orders, charts, and activity remain consistent across navigation.
 - Use separate leaf routes for workspace views and login so navigation is typed and every shareable view has specific metadata.
 - Use AI Elements for the simulated assistant conversation and composer; responses are computed locally with no server or API dependency.
+- Keep illustrative daily chart subdivisions in a pure chart-data adapter that preserves monthly totals and current stock, so daily hover values stay consistent without changing inventory transitions.
