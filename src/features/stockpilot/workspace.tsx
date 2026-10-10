@@ -51,6 +51,10 @@ import {
   money,
   restockQuantity,
   changeStock,
+  removeStock,
+  removalReasons,
+  returnReasons,
+  ean13,
   approveOrder,
   receiveOrder,
   orderCost,
@@ -91,7 +95,10 @@ export function Logo() {
 export function Workspace({ page = "Inventory" }: { page?: string }) {
   const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
   const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
-  const budgetLeft = budget - committed;
+  const refunds = state.activities
+    .filter((a) => a.flow === "refund")
+    .reduce((n, a) => n + (a.amount ?? 0), 0);
+  const budgetLeft = budget - committed + refunds;
   const revenue = state.activities
     .filter((a) => a.flow === "in")
     .reduce((n, a) => n + (a.amount ?? 0), 0);
@@ -99,7 +106,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
   const [filter, setFilter] = useState<"all" | "low" | "archived">("all");
-  const [modal, setModal] = useState<"create" | "edit" | "receive" | "sell" | "archive" | null>(
+  const [modal, setModal] = useState<ModalMode>(
     null,
   );
   const [notifications, setNotifications] = useState(false);
@@ -463,10 +470,11 @@ function ProductRow({ product: p }: { product: Product }) {
     </Button>
   );
 }
+type ModalMode = "create" | "edit" | "receive" | "sell" | "archive" | "remove" | "return" | null;
 function ProductDetail({
   open,
 }: {
-  open: (mode: "edit" | "receive" | "sell" | "archive") => void;
+  open: (mode: Exclude<ModalMode, "create" | null>) => void;
 }) {
   const { state, setState, selectedId, user } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
@@ -496,7 +504,15 @@ function ProductDetail({
           </span>
           <h2>{p.name}</h2>
           <p>
-            {p.size} <span>·</span> SKU: {p.sku}
+            {p.size} <span>·</span> ID: {p.id.toUpperCase()} <span>·</span> SKU: {p.sku}
+          </p>
+          <p className="barcode-line" aria-label={`Barcode ${p.barcode}`}>
+            <span className="barcode-bars" aria-hidden="true">
+              {[...p.barcode].map((c, i) => (
+                <i key={i} style={{ width: `${(Number(c) % 3) + 1}px` }} />
+              ))}
+            </span>
+            <code>{p.barcode}</code>
           </p>
           <div className="detail-actions">
             <Button variant="outline" size="sm" onClick={() => open("edit")}>
@@ -599,6 +615,22 @@ function ProductDetail({
           <PackagePlus />
           Restock now
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={p.archived || p.stock === 0}
+          onClick={() => open("remove")}
+        >
+          Remove stock
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={p.archived || p.stock === 0}
+          onClick={() => open("return")}
+        >
+          Return to supplier
+        </Button>
       </div>
       <div className="recent-activity">
         <div className="section-heading">
@@ -654,7 +686,7 @@ function ProductModal({
   mode,
   close,
 }: {
-  mode: "create" | "edit" | "receive" | "sell" | "archive" | null;
+  mode: ModalMode;
   close: () => void;
 }) {
   const { state, setState, selectedId, select, user } = useStockPilot();
@@ -671,6 +703,16 @@ function ProductModal({
         return;
       }
       setState((s) => changeStock(s, p.id, q, mode, user, time));
+    } else if (mode === "remove" || mode === "return") {
+      const q = Number(data.get("quantity"));
+      const reason = [String(data.get("reason") ?? ""), String(data.get("note") ?? "").trim()]
+        .filter(Boolean)
+        .join(" — ");
+      if (!p || q <= 0 || !Number.isInteger(q) || q > p.stock) {
+        setError("Enter a valid whole quantity within available stock.");
+        return;
+      }
+      setState((s) => removeStock(s, p.id, q, mode, reason, user, time));
     } else if (mode === "archive" && p) {
       setState((s) => ({
         ...s,
@@ -704,6 +746,7 @@ function ProductModal({
         cost,
         supplier: String(data.get("supplier")),
         sku: mode === "edit" && p ? p.sku : `SP-${Date.now().toString().slice(-5)}`,
+        barcode: String(data.get("barcode") ?? "").trim() || (mode === "edit" && p ? p.barcode : ean13(Date.now().toString().slice(-12))),
         emoji: {
           Beverages: "🥤",
           Snacks: "🍪",
@@ -757,7 +800,11 @@ function ProductModal({
               ? "Add a new product"
               : mode === "edit"
                 ? "Edit product"
-                : mode === "receive"
+                : mode === "remove"
+                  ? "Remove stock"
+                  : mode === "return"
+                  ? "Return to supplier"
+                  : mode === "receive"
                   ? "Receive stock"
                   : mode === "sell"
                     ? "Record a sale"
@@ -816,6 +863,44 @@ function ProductModal({
                 />
               </div>
               <Field label="Supplier" name="supplier" value={mode === "edit" ? p?.supplier : ""} />
+              <label>
+                Barcode (EAN, optional)
+                <input
+                  name="barcode"
+                  inputMode="numeric"
+                  pattern="[0-9]{8,14}"
+                  placeholder="Auto-generated if empty"
+                  defaultValue={mode === "edit" ? p?.barcode : ""}
+                />
+              </label>
+            </>
+          ) : mode === "remove" || mode === "return" ? (
+            <>
+              <div className="stock-modal-summary">
+                Available stock <strong>{p?.stock} units</strong>
+              </div>
+              {mode === "return" && (
+                <p className="text-sm text-muted-foreground">
+                  Units go back to <strong>{p?.supplier}</strong>; their cost is credited to your
+                  budget.
+                </p>
+              )}
+              <Field label="Quantity" name="quantity" type="number" min={1} max={p?.stock} value={1} />
+              <label>
+                Reason
+                <select name="reason" required defaultValue="">
+                  <option value="" disabled>
+                    Choose a reason
+                  </option>
+                  {(mode === "return" ? returnReasons : removalReasons).map((r) => (
+                    <option key={r}>{r}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Note (optional)
+                <input name="note" placeholder="e.g. Cans dented in delivery" />
+              </label>
             </>
           ) : mode === "archive" ? (
             <p className="text-sm text-muted-foreground">
@@ -846,8 +931,15 @@ function ProductModal({
             <Button type="button" variant="outline" onClick={close}>
               Cancel
             </Button>
-            <Button type="submit" variant={mode === "archive" ? "destructive" : "default"}>
-              {mode === "create"
+            <Button
+              type="submit"
+              variant={mode === "archive" || mode === "remove" ? "destructive" : "default"}
+            >
+              {mode === "remove"
+                ? "Remove from stock"
+                : mode === "return"
+                  ? "Send return"
+                  : mode === "create"
                 ? "Create product"
                 : mode === "edit"
                   ? "Save changes"
@@ -1017,7 +1109,10 @@ function ActivityTable() {
                   <td>
                     <strong>{a.product}</strong>
                   </td>
-                  <td>{a.action}</td>
+                  <td>
+                    {a.action}
+                    {a.reason && <div className="text-xs text-muted-foreground">{a.reason}</div>}
+                  </td>
                    <td>
                      {a.before !== undefined ? (
                        <span
@@ -1033,8 +1128,8 @@ function ActivityTable() {
                    </td>
                     <td>
                       {a.amount !== undefined ? (
-                        <span className={a.flow === "in" ? "positive" : "negative"}>
-                          {a.flow === "in" ? "+" : "−"}
+                        <span className={a.flow === "out" ? "negative" : "positive"}>
+                          {a.flow === "out" ? "−" : "+"}
                           {money(a.amount)}
                         </span>
                       ) : (

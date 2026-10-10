@@ -18,6 +18,7 @@ export type Product = {
   cost: number;
   supplier: string;
   sku: string;
+  barcode: string;
   emoji: string;
   archived?: boolean;
   history: number[];
@@ -32,7 +33,8 @@ export type Activity = {
   before?: number | undefined;
   after?: number | undefined;
   amount?: number | undefined;
-  flow?: "in" | "out" | undefined;
+  flow?: "in" | "out" | "refund" | undefined;
+  reason?: string | undefined;
   time: string;
 };
 export type Order = {
@@ -91,6 +93,7 @@ export const demoProducts: Product[] = rows.map((r, i) => ({
   supplier: r[7],
   emoji: r[8],
   sku: `SP-${String(1001 + i)}`,
+  barcode: ean13(`500123${String(100000 + i * 7919).slice(-6)}`),
   history:
     i === 0
       ? [36, 62, 54, 82, 68, 48]
@@ -181,6 +184,50 @@ export const money = (n: number) =>
 export const isLowStock = (p: Product) => !p.archived && p.stock <= p.threshold;
 export const restockQuantity = (p: Product) =>
   Math.max(p.threshold * 2 - p.stock, p.threshold);
+/** Builds a valid EAN-13 from 12 digits by appending the check digit. */
+export function ean13(twelve: string): string {
+  const d = twelve.replace(/\D/g, "").padStart(12, "0").slice(0, 12);
+  const sum = [...d].reduce((n, c, i) => n + Number(c) * (i % 2 ? 3 : 1), 0);
+  return d + String((10 - (sum % 10)) % 10);
+}
+export const removalReasons = ["Damaged", "Expired", "Theft or loss", "Count correction", "Own use"] as const;
+export const returnReasons = ["Defective", "Damaged on arrival", "Wrong item", "Recalled", "Expired on arrival"] as const;
+/** Takes units out of stock: a write-off (loss at cost) or a supplier return (refund at cost). */
+export function removeStock(
+  state: StoreState,
+  id: string,
+  quantity: number,
+  kind: "remove" | "return",
+  reason: string,
+  actor: string,
+  time: string,
+): StoreState {
+  const p = state.products.find((p) => p.id === id);
+  if (!p || p.archived || !Number.isInteger(quantity) || quantity <= 0 || quantity > p.stock || !reason.trim())
+    return state;
+  const stock = p.stock - quantity;
+  return {
+    ...state,
+    products: state.products.map((item) =>
+      item.id === id ? { ...item, stock, history: [...item.history.slice(0, -1), stock] } : item,
+    ),
+    activities: [
+      {
+        id: `${time}-${id}-${kind}`,
+        product: p.name,
+        actor,
+        action: kind === "return" ? `Returned to ${p.supplier}` : "Stock removed",
+        reason,
+        before: p.stock,
+        after: stock,
+        amount: quantity * p.cost,
+        flow: kind === "return" ? "refund" : "out",
+        time,
+      },
+      ...state.activities,
+    ],
+  };
+}
 export const trendColor = (before: number, after: number) =>
   after < before ? "var(--chart-down)" : "var(--primary)";
 export function changeStock(
