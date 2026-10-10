@@ -6,12 +6,12 @@ export const Route = createFileRoute("/documents")({
       { title: "Documents — StockPilot" },
       {
         name: "description",
-        content: "View and print receipts, purchase orders and supplier delivery notes.",
+        content: "View linked purchase requests, supplier invoices, delivery notes and goods-received receipts.",
       },
       { property: "og:title", content: "Documents — StockPilot" },
       {
         property: "og:description",
-        content: "View and print receipts, purchase orders and supplier delivery notes.",
+        content: "View linked purchase requests, supplier invoices, delivery notes and goods-received receipts.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

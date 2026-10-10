@@ -59,6 +59,8 @@ import {
   ean13,
   approveOrder,
   receiveOrder,
+  confirmSupplier,
+  supplierDocuments,
   orderCost,
   type Product,
 } from "./model";
@@ -1001,6 +1003,7 @@ function Field({
 function Orders() {
   const { state, setState, user } = useStockPilot();
   const [tab, setTab] = useState("All orders");
+  const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
   return (
     <section className="data-section">
       <div className="view-tabs">
@@ -1033,7 +1036,7 @@ function Orders() {
                 })}
               </div>
               <div className="order-total">
-                <span>Order total</span>
+                <span>Estimated request value</span>
                 <strong>
                   {money(
                     o.lines.reduce(
@@ -1056,9 +1059,18 @@ function Orders() {
                   Approve order
                 </Button>
               ) : o.status === "Approved" ? (
-                <Button
+                <div className="supplier-confirmation">
+                  <label>Supplier confirmation
+                    <select aria-label={`Supplier confirmation for ${o.id}`} value={confirmation} onChange={(e) => setConfirmation(e.target.value as "Invoice" | "Delivery note" | "Both")}>
+                      <option value="Both">Invoice + delivery note</option><option value="Invoice">Invoice only</option><option value="Delivery note">Delivery note only</option>
+                    </select>
+                  </label>
+                  <Button variant="outline" className="w-full" onClick={() => setState((s) => confirmSupplier(s, o.id, confirmation, user, new Date().toISOString()))}><FileText />Record demo confirmation</Button>
+                  <p className="text-xs text-muted-foreground">Invoice: {supplierDocuments(state, o.id).invoice ? "Recorded" : "Missing"} · Delivery note: {supplierDocuments(state, o.id).delivery ? "Recorded" : "Missing"}</p>
+                  <Button
                   variant="outline"
                   className="w-full"
+                  disabled={!supplierDocuments(state, o.id).invoice || !supplierDocuments(state, o.id).delivery}
                   onClick={() =>
                     setState((s) => receiveOrder(s, o.id, user, new Date().toISOString()))
                   }
@@ -1066,6 +1078,7 @@ function Orders() {
                   <PackageCheck />
                   Receive order
                 </Button>
+                </div>
               ) : (
                 <div className="received-order">
                   <Check size={16} />

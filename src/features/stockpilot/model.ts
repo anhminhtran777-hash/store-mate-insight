@@ -47,7 +47,7 @@ export type Order = {
 export type DocLine = { name: string; quantity: number; unit: number };
 export type StoreDocument = {
   id: string;
-  kind: "Receipt" | "Purchase order" | "Delivery note";
+  kind: "Receipt" | "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt";
   reference: string;
   party: string;
   actor: string;
@@ -57,6 +57,9 @@ export type StoreDocument = {
   paid?: number | undefined;
   method?: "Cash" | "Card" | undefined;
   sentTo?: string | undefined;
+  number?: string;
+  relatedIds?: string[];
+  demo?: boolean;
 };
 export type StoreState = {
   products: Product[];
@@ -308,7 +311,7 @@ export function orderCost(state: StoreState, order: Order): number {
 function orderDocument(
   state: StoreState,
   order: Order,
-  kind: "Purchase order" | "Delivery note",
+  kind: "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt",
   actor: string,
   time: string,
 ): StoreDocument {
@@ -317,7 +320,9 @@ function orderDocument(
     return { name: p ? `${p.name} (${p.size})` : l.productId, quantity: l.quantity, unit: p?.cost ?? 0 };
   });
   return {
-    id: `${kind === "Purchase order" ? "PO" : "DN"}-${order.id}-${time}`,
+    id: `${kind}-${order.id}-${time}`,
+    number: `${({ "Purchase order": "PO", "Delivery note": "DN", Invoice: "INV", "Goods receipt": "GR" })[kind]}-${order.id.replace(/^PO-/, "")}`,
+    demo: kind !== "Purchase order",
     kind,
     reference: order.id,
     party: order.supplier,
@@ -326,6 +331,21 @@ function orderDocument(
     lines,
     total: lines.reduce((n, l) => n + l.quantity * l.unit, 0),
   };
+}
+export function supplierDocuments(state: StoreState, orderId: string) {
+  const docs = (state.documents ?? []).filter((d) => d.reference === orderId);
+  return { invoice: docs.find((d) => d.kind === "Invoice"), delivery: docs.find((d) => d.kind === "Delivery note") };
+}
+/** Simulates supplier paperwork without changing stock or charging the budget again. */
+export function confirmSupplier(state: StoreState, id: string, kind: "Invoice" | "Delivery note" | "Both", actor: string, time: string): StoreState {
+  const order = state.orders.find((o) => o.id === id);
+  if (!order || order.status !== "Approved") return state;
+  const existing = supplierDocuments(state, id);
+  const docs: StoreDocument[] = [];
+  if ((kind === "Invoice" || kind === "Both") && !existing.invoice) docs.push(orderDocument(state, order, "Invoice", order.supplier, time));
+  if ((kind === "Delivery note" || kind === "Both") && !existing.delivery) docs.push(orderDocument(state, order, "Delivery note", order.supplier, time));
+  if (!docs.length) return state;
+  return { ...state, documents: [...docs, ...(state.documents ?? [])], activities: [{ id: `${time}-${id}-confirmation`, product: id, actor, action: "Supplier confirmation recorded", time }, ...state.activities] };
 }
 export type CartLine = { productId: string; quantity: number };
 /** Sells a whole cart: lowers stock, logs each sale and issues one receipt. Rejects carts exceeding stock. */
@@ -397,6 +417,8 @@ export function receiveOrder(
 ): StoreState {
   const order = state.orders.find((o) => o.id === id);
   if (!order || order.status !== "Approved") return state;
+  const { invoice, delivery } = supplierDocuments(state, id);
+  if (!invoice || !delivery) return state;
   const updated = order.lines.reduce(
     (s, line) => changeStock(s, line.productId, line.quantity, "receive", actor, time),
     state,
@@ -405,7 +427,7 @@ export function receiveOrder(
   return {
     ...updated,
     orders: updated.orders.map((o) => (o.id === id ? { ...o, status: "Received" } : o)),
-    documents: [orderDocument(state, order, "Delivery note", actor, time), ...(updated.documents ?? [])],
+    documents: [{ ...orderDocument(state, order, "Goods receipt", actor, time), relatedIds: [delivery.id, invoice.id] }, ...(updated.documents ?? [])].map((d) => d.reference === id ? { ...d, relatedIds: [...new Set([...(d.relatedIds ?? []), invoice.id, delivery.id, `${"Goods receipt"}-${id}-${time}`])].filter((related) => related !== d.id) } : d),
     activities: [
       {
         id: `${time}-${id}-received`,

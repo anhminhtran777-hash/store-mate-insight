@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Printer, Mail, Trash2, FileText, Receipt, Truck } from "lucide-react";
+import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
 import { checkout, money, type CartLine, type StoreDocument } from "./model";
+import { InvoiceSheet } from "./invoice";
 
 /** Opens the browser print dialog for one document only. */
 function printDocument() {
@@ -20,9 +21,11 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   const { storeName, state } = useStockPilot();
   const receipt = doc.kind === "Receipt";
   const delivery = doc.kind === "Delivery note";
+  const goods = doc.kind === "Goods receipt";
   const order = state.orders.find((o) => o.id === doc.reference);
   const date = new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   const units = doc.lines.reduce((n, line) => n + line.quantity, 0);
+  if (doc.kind === "Invoice") return <InvoiceSheet doc={doc} buyer={storeName} />;
   if (receipt) return (
     <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
       <header className="receipt-heading">
@@ -56,26 +59,27 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   );
   return (
     <article className="doc-sheet doc-business" aria-label={doc.kind}>
+      {doc.demo && <p className="invoice-demo">SIMULATED SUPPLIER DOCUMENT · DEMO ONLY</p>}
       <header className="business-heading">
-        <div><span className="doc-label">{delivery ? "SUPPLIER DELIVERY RECORD" : "PROCUREMENT"}</span><strong>{doc.kind}</strong><span>{storeName}</span></div>
-        <div className="business-reference"><strong>{delivery ? `DN-${doc.reference.replace(/^PO-/, "")}` : doc.reference}</strong><span>{delivery ? "Received in full" : "Approved order"}</span></div>
+        <div><span className="doc-label">{goods ? "STOCK RECEIVING RECORD" : delivery ? "SUPPLIER DELIVERY RECORD" : "PURCHASE REQUEST · NOT AN INVOICE"}</span><strong>{goods ? "Goods-received receipt" : doc.kind}</strong><span>{goods ? storeName : delivery ? doc.party : storeName}</span></div>
+        <div className="business-reference"><strong>{doc.number ?? doc.reference}</strong><span>{goods ? "Stock received" : delivery ? "Supplier dispatch confirmation" : "Request to supplier"}</span></div>
       </header>
       <section className="doc-parties">
         <div><span className="doc-label">{delivery ? "Delivered by" : "Supplier / order to"}</span><strong>{doc.party}</strong><span>Supplier for this order</span></div>
-        <div><span className="doc-label">{delivery ? "Received at" : "Buyer / deliver to"}</span><strong>{storeName}</strong><span>{delivery ? `Received by ${doc.actor}` : `Prepared by ${doc.actor}`}</span></div>
+        <div><span className="doc-label">{goods ? "Received at" : "Buyer / deliver to"}</span><strong>{storeName}</strong><span>{goods ? `Received by ${doc.actor}` : `Prepared by ${doc.actor}`}</span></div>
       </section>
       <dl className="business-details">
-        <div><dt>{delivery ? "Received on" : "Approved on"}</dt><dd>{date}</dd></div>
+        <div><dt>{goods ? "Received on" : delivery ? "Issued on" : "Requested on"}</dt><dd>{date}</dd></div>
         <div><dt>Purchase order</dt><dd>{doc.reference}</dd></div>
         <div><dt>Order created</dt><dd>{order?.date ?? "Not recorded"}</dd></div>
-        <div><dt>{delivery ? "Receiving officer" : "Authorized by"}</dt><dd>{doc.actor}</dd></div>
+        <div><dt>{goods ? "Receiving officer" : delivery ? "Issued by" : "Requested by"}</dt><dd>{doc.actor}</dd></div>
       </dl>
       <table>
-        <caption>{delivery ? "Goods received" : "Items ordered"}</caption>
+        <caption>{goods ? "Goods received into stock" : delivery ? "Goods dispatched" : "Items requested"}</caption>
         <thead>
           <tr>
             <th>No.</th><th>Item / description</th>
-            <th>{delivery ? "Received qty" : "Order qty"}</th>
+            <th>{goods ? "Received qty" : delivery ? "Delivered qty" : "Requested qty"}</th>
             <th>Unit cost</th><th>Amount</th>
           </tr>
         </thead>
@@ -92,17 +96,18 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
         </tbody>
       </table>
       <section className="business-summary">
-        <div><span className="doc-label">Order summary</span><p>{doc.lines.length} product lines · {units} units</p><p>{delivery ? "Goods received in full and added to inventory." : "Approved for purchase from the supplier listed above."}</p></div>
-        <dl><div><dt>Line total</dt><dd>{money(doc.total)}</dd></div><div className="business-total"><dt>{delivery ? "Received value" : "Order total"}</dt><dd>{money(doc.total)}</dd></div></dl>
+        <div><span className="doc-label">Order summary</span><p>{doc.lines.length} product lines · {units} units</p><p>{goods ? "Goods received in full and added to inventory." : delivery ? "Supplier lists these goods for delivery. Stock is recorded separately on the goods receipt." : "Request for the supplier to confirm availability and supply these goods."}</p></div>
+        <dl><div><dt>Line total</dt><dd>{money(doc.total)}</dd></div><div className="business-total"><dt>{goods ? "Received value" : delivery ? "Goods value" : "Estimated value"}</dt><dd>{money(doc.total)}</dd></div></dl>
       </section>
       <section className="business-notes">
         <span className="doc-label">{delivery ? "Receiving record" : "Order notes"}</span>
-        <p>{delivery ? `Receipt recorded by ${doc.actor} on ${date}. Quantities above reflect the units added to stock.` : `Please reference ${doc.reference} on related deliveries and supplier correspondence.`}</p>
+        <p>{goods ? `Receipt recorded by ${doc.actor} on ${date}. Retained with the supplier delivery note and original invoice.` : `Please reference ${doc.reference} on related deliveries and supplier correspondence.`}</p>
         <p>Tax, delivery charges and payment terms are not recorded. This document is not a tax invoice.</p>
+        {(goods || delivery) && <p>{(state.documents ?? []).filter((d) => d.reference === doc.reference && d.id !== doc.id && (d.kind === "Invoice" || d.kind === "Delivery note" || d.kind === "Goods receipt")).map((d) => `${d.kind}: ${d.number ?? d.reference}`).join(" · ")}</p>}
       </section>
       <footer className="business-footer">
-        <div><span>{delivery ? "Received by" : "Approved by"}</span><strong>{doc.actor}</strong></div>
-        <div><span>Document reference</span><strong>{delivery ? "DN · " : ""}{doc.reference}</strong></div>
+        <div><span>{goods ? "Received by" : delivery ? "Issued by" : "Requested by"}</span><strong>{doc.actor}</strong></div>
+        <div><span>Document reference</span><strong>{doc.number ?? doc.reference}</strong></div>
       </footer>
     </article>
   );
@@ -116,7 +121,10 @@ export function DocumentDialog({
   close: () => void;
 }) {
   const { state, setState } = useStockPilot();
-  const doc = (state.documents ?? []).find((d) => d.id === initial?.id) ?? initial;
+  const [selected, setSelected] = useState<StoreDocument | null>(null);
+  useEffect(() => setSelected(null), [initial?.id]);
+  const active = selected ?? initial;
+  const doc = (state.documents ?? []).find((d) => d.id === active?.id) ?? active;
   const [email, setEmail] = useState("");
   const send = () => {
     if (!doc || !/^\S+@\S+\.\S+$/.test(email)) return;
@@ -133,6 +141,7 @@ export function DocumentDialog({
           <DialogDescription>{doc?.reference}</DialogDescription>
         </DialogHeader>
         {doc && <div className="doc-preview"><DocumentSheet doc={doc} /></div>}
+        {doc && doc.kind !== "Receipt" && <div className="doc-related" aria-label="Related documents">{(state.documents ?? []).filter((d) => d.reference === doc.reference && d.id !== doc.id).map((d) => <Button key={d.id} variant="outline" size="sm" onClick={() => setSelected(d)}><FileText />{d.kind === "Goods receipt" ? "Goods-received receipt" : d.kind}</Button>)}</div>}
         {doc && (
           <div className="doc-actions">
             <Button onClick={printDocument}>
@@ -372,7 +381,7 @@ export function Cashier() {
   );
 }
 
-const kindIcon = { Receipt, "Purchase order": FileText, "Delivery note": Truck };
+const kindIcon = { Receipt, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
@@ -381,7 +390,7 @@ export function Documents() {
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
-        {(["All", "Receipt", "Purchase order", "Delivery note"] as const).map((f) => (
+        {(["All", "Receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt"] as const).map((f) => (
           <Button
             key={f}
             variant="ghost"
@@ -390,7 +399,7 @@ export function Documents() {
             data-state={filter === f ? "on" : "off"}
             onClick={() => setFilter(f)}
           >
-            {f === "All" ? "All" : `${f}s`}
+            {f === "All" ? "All" : f === "Goods receipt" ? "Goods receipts" : `${f}s`}
           </Button>
         ))}
       </div>
