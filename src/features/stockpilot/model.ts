@@ -243,7 +243,15 @@ export function approveOrder(
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
     activities: [
-      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", amount, time },
+      {
+        id: `${time}-${id}`,
+        product: id,
+        actor,
+        action: "Purchase order approved",
+        amount,
+        flow: "out",
+        time,
+      },
       ...state.activities,
     ],
   };
@@ -271,6 +279,7 @@ export function receiveOrder(
         actor,
         action: "Purchase order received",
         amount,
+        flow: "out",
         time,
       },
       ...updated.activities,
