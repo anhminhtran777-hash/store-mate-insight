@@ -1020,6 +1020,7 @@ function Orders() {
   const [tab, setTab] = useState("All orders");
   const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
   const [requestOpen, setRequestOpen] = useState(false);
+  const [bulkNote, setBulkNote] = useState("");
   const [supplier, setSupplier] = useState("");
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [requestError, setRequestError] = useState("");
@@ -1046,10 +1047,11 @@ function Orders() {
         <Button variant="outline" onClick={() => {
           const next = requestAllLowStock(state, 16, user, new Date().toISOString());
           const made = next.orders.length - state.orders.length;
-          if (!made) { toast("No items are below their minimum."); return; }
+          if (!made) { setBulkNote("No items are below their minimum."); return; }
           setState(() => next);
-          toast(`Created ${made} purchase request${made > 1 ? "s" : ""} for low stock (16 each).`);
+          setBulkNote(`Created ${made} purchase request${made > 1 ? "s" : ""} for low stock (16 each).`);
         }}><PackagePlus />Request all low stock ×16</Button>
+        {bulkNote && <span className="text-xs text-muted-foreground" role="status">{bulkNote}</span>}
         <Button disabled={!suppliers.length} onClick={() => { setSupplier(suppliers[0] ?? ""); setQuantities({}); setRequestError(""); setRequestSearch(""); setRequestOpen(true); }}><Plus />New purchase request</Button>
       </div>
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
