@@ -100,7 +100,9 @@ export function Logo() {
   );
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
-  const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
+  const { state, user, role, storeName, pinned, setPinned, budget } = useStockPilot();
+  const manager = role === "Manager";
+  const allowed = canAccessPage(role, page);
   const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
   const refunds = state.activities
     .filter((a) => a.flow === "refund")
@@ -150,7 +152,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
         </div>
         <p className="nav-label">WORKSPACE</p>
         <nav className="main-nav">
-          {navItems.map((n) => (
+          {navItems.filter((n) => canAccessPage(role, n.name)).map((n) => (
             <Button key={n.name} asChild variant={path === n.to ? "nav-active" : "nav"}>
               <Link to={n.to}>
                 <n.icon size={18} />
@@ -177,7 +179,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
             </div>
             <div>
               <strong>{user}</strong>
-              <span>Store manager</span>
+              <span>{role === "Manager" ? "Store manager" : "Store staff"}</span>
             </div>
             <Button asChild variant="nav-icon" size="icon" title="Sign out">
               <Link to="/login">
@@ -202,7 +204,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
             <div className="notification-anchor">
               <NotificationCenter />
             </div>
-            <div className="avatar small">AM</div>
+            <div className="avatar small" title={`${user} · ${role}`}>{role === "Manager" ? "DM" : "DS"}</div>
           </div>
         </header>
         <main className="page-content">
@@ -228,13 +230,13 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                           : "Good decisions start with the right insights."}
               </p>
             </div>
-            {page === "Inventory" && (
+            {page === "Inventory" && manager && (
               <Button onClick={() => setModal("create")}>
                 <Plus />
                 Add product
               </Button>
             )}
-            {page === "Dashboard" && (
+            {allowed && page === "Dashboard" && (
               <Button asChild>
                 <Link to="/">
                   View inventory
@@ -243,7 +245,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               </Button>
             )}
           </div>
-          {["Inventory", "Dashboard"].includes(page) && (
+          {allowed && ["Inventory", "Dashboard"].includes(page) && (
             <div className="metrics">
               <Metric
                 title="Total products"
@@ -259,18 +261,18 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                 note="Total stock at cost"
                 trend="Live inventory value"
               />
-              <Metric
+              {manager && <Metric
                 title="Purchase budget"
                 value={money(budgetLeft)}
-                icon={<Wallet />}
+                icon={<Wallet />}}
                 note={`${money(committed)} committed of ${money(budget)}`}
                 trend={budgetLeft < 0 ? "Over budget" : "Left to spend this month"}
                 warning={budgetLeft < 0}
               />
-              <Metric
+              {manager && <Metric
                 title="Revenue"
                 value={money(revenue)}
-                icon={<TrendingUp />}
+                icon={<TrendingUp />}}
                 note="From sold stock"
                 trend="Sales this session"
               />
@@ -291,7 +293,14 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               />
             </div>
           )}
-          {page === "Inventory" && (
+          {!allowed && (
+            <section className="settings-section">
+              <h2>Manager access only</h2>
+              <p>Your Demo Staff profile can use Inventory, Cashier, Purchase Orders and Settings. Ask a manager for this page.</p>
+              <Button asChild><Link to="/">Back to inventory</Link></Button>
+            </section>
+          )}
+          {allowed && page === "Inventory" && (
             <div className="inventory-split">
               <section className="product-list">
                 <div className="section-heading">
@@ -376,12 +385,12 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               <ProductDetail open={setModal} />
             </div>
           )}
-          {page === "Dashboard" && <Dashboard />}
-          {page === "AI Assistant" && <Assistant />}
+          {allowed && page === "Dashboard" && <Dashboard />}
+          {allowed && page === "AI Assistant" && <Assistant />}
           {page === "Purchase Orders" && <Orders />}
           {page === "Cashier" && <Cashier />}
-          {page === "Documents" && <Documents />}
-          {page === "Activity Log" && <ActivityTable />}
+          {allowed && page === "Documents" && <Documents />}
+          {allowed && page === "Activity Log" && <ActivityTable />}
           {page === "Settings" && <StoreSettings />}
           <footer className="page-footer">
             <span>
@@ -463,7 +472,7 @@ function ProductDetail({
 }: {
   open: (mode: Exclude<ModalMode, "create" | null>) => void;
 }) {
-  const { state, setState, selectedId, user } = useStockPilot();
+  const { state, setState, selectedId, user, role } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
   if (!p) return <div className="empty-state">Select a product.</div>;
   const Icon = categoryIcons[p.category];
@@ -498,7 +507,7 @@ function ProductDetail({
             </span>
             <code>{p.barcode ?? "—"}</code>
           </p>
-          <div className="detail-actions">
+          {role === "Manager" && <div className="detail-actions">
             <Button variant="outline" size="sm" onClick={() => open("edit")}>
               <Pencil size={13} />
               Edit product
@@ -513,7 +522,7 @@ function ProductDetail({
             >
               <Archive size={15} />
             </Button>
-          </div>
+          </div>}
         </div>
       </div>
       <div className="detail-stat-grid">
@@ -581,6 +590,7 @@ function ProductDetail({
         >
           Record sale
         </Button>
+        {role === "Manager" && <>
         <Button size="sm" disabled={p.archived} onClick={() => open("receive")}>
           <ArrowDownToLine />
           Receive stock
@@ -615,6 +625,7 @@ function ProductDetail({
         >
           Return to supplier
         </Button>
+        </>}
       </div>
       <div className="recent-activity">
         <div className="section-heading">
@@ -982,7 +993,7 @@ function Field({
   );
 }
 function Orders() {
-  const { state, setState, user } = useStockPilot();
+  const { state, setState, user, role } = useStockPilot();
   const [tab, setTab] = useState("All orders");
   const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
   const [requestOpen, setRequestOpen] = useState(false);
@@ -1099,6 +1110,7 @@ function Orders() {
                 </strong>
               </div>
               {o.status === "Draft" ? (
+                role !== "Manager" ? <p className="text-sm text-muted-foreground">Waiting for a manager to approve.</p> :
                 <Button
                   className="w-full"
                   onClick={() =>
@@ -1293,8 +1305,9 @@ function Dashboard() {
   );
 }
 function StoreSettings() {
-  const { storeName, setStoreName, user, setUser, pinned, setPinned, budget, setBudget } =
+  const { storeName, setStoreName, user, setUser, role, pinned, setPinned, budget, setBudget } =
     useStockPilot();
+  const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
@@ -1305,20 +1318,22 @@ function StoreSettings() {
       </div>
       <div id="settings-panel" role="tabpanel" aria-labelledby={`${tab}-tab`}>
       {tab === "appearance" ? <AppearanceSettings /> : <>
-      <h2>Store profile</h2>
+      <h2>{manager ? "Store profile" : "Your settings"}</h2>
       <form
         className="product-form"
         onSubmit={(e) => {
           e.preventDefault();
           const data = new FormData(e.currentTarget);
+          if (manager) {
           setStoreName(String(data.get("store")));
           setUser(String(data.get("manager")));
+          }
           const b = Number(data.get("budget"));
-          if (Number.isFinite(b) && b >= 0) setBudget(b);
+          if (manager && Number.isFinite(b) && b >= 0) setBudget(b);
           setSaved(true);
         }}
       >
-        <Field label="Store name" name="store" value={storeName} />
+        {manager && <><Field label="Store name" name="store" value={storeName} />
         <Field label="Store manager" name="manager" value={user} />
         <Field
           label="Monthly purchase budget ($)"
@@ -1326,7 +1341,7 @@ function StoreSettings() {
           type="number"
           step="0.01"
           value={budget}
-        />
+        /></>}
         <label>
           Currency
           <input value="USD — US Dollar (demo)" readOnly />
@@ -1359,7 +1374,7 @@ function StoreSettings() {
   );
 }
 export function Login() {
-  const { setUser, storeName } = useStockPilot();
+  const { setUser, setRole, storeName } = useStockPilot();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1413,6 +1428,7 @@ export function Login() {
                 return;
               }
               setUser((email.split("@")[0] || "Store manager").replace(/[._]/g, " "));
+              setRole("Manager");
               void navigate({ to: "/" });
             }}
           >
@@ -1448,17 +1464,20 @@ export function Login() {
             or explore Stock Genie
             <span />
           </div>
-          <Button
-            asChild
-            variant="outline"
-            className="w-full"
-            onClick={() => setUser("Alex Morgan")}
-          >
-            <Link to="/">
-              Try the demo
-              <ArrowUpRight />
-            </Link>
-          </Button>
+          {(["Manager", "Staff"] as const).map((r) => (
+            <Button
+              key={r}
+              asChild
+              variant="outline"
+              className="w-full"
+              onClick={() => { setUser(demoProfiles[r]); setRole(r); }}
+            >
+              <Link to="/">
+                {r === "Manager" ? "Try the demo as Manager" : "Try the demo as Staff"}
+                <ArrowUpRight />
+              </Link>
+            </Button>
+          ))}
           <p className="login-demo-note">Demo sign-in only. No account required.</p>
         </div>
         <span className="login-copyright">© 2026 Stock Genie. A smarter store starts here.</span>

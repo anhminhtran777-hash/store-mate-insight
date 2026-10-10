@@ -8,7 +8,7 @@ import {
   type SetStateAction,
   type Context as ReactContext,
 } from "react";
-import { initialState, demoProducts, type StoreState } from "./model";
+import { initialState, demoProducts, demoProfiles, type StoreState, type Role } from "./model";
 type DemoContext = {
   state: StoreState;
   setState: Dispatch<SetStateAction<StoreState>>;
@@ -16,6 +16,8 @@ type DemoContext = {
   select: (id: string) => void;
   user: string;
   setUser: (user: string) => void;
+  role: Role;
+  setRole: (role: Role) => void;
   storeName: string;
   setStoreName: (n: string) => void;
   pinned: boolean;
@@ -41,7 +43,8 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
     });
   }, [demoProducts]);
   const [selectedId, select] = useState("p1");
-  const [user, setUser] = useState("Alex Morgan");
+  const [user, setUser] = useState(demoProfiles.Manager);
+  const [role, setRole] = useState<Role>("Manager");
   const [storeName, setStoreName] = useState("Corner Market");
   const [pinned, setPinned] = useState(true);
   const [budget, setBudget] = useState(1500);
@@ -55,6 +58,8 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
         select,
         user,
         setUser,
+        role,
+        setRole,
         storeName,
         setStoreName,
         pinned,
