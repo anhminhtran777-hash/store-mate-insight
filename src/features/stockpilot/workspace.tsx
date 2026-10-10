@@ -216,7 +216,7 @@ export function Workspace({ page = "Inventory", settingsTab }: { page?: string; 
                   <div className="profile-menu-store"><Store size={13} /> {storeName} · Main store</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link to="/settings"><Settings size={15} /> Store profile & settings</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "profile" }}><Settings size={15} /> Store profile & settings</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "appearance" }}><SlidersHorizontal size={15} /> Appearance & themes</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link to="/login"><LogOut size={15} /> Sign out</Link></DropdownMenuItem>
@@ -411,7 +411,7 @@ export function Workspace({ page = "Inventory", settingsTab }: { page?: string; 
           {allowed && page === "Documents" && <Documents />}
           {allowed && page === "Reports" && <ReportsPanel />}
           {allowed && page === "Activity Log" && <ActivityTable />}
-          {page === "Settings" && <StoreSettings initialTab={settingsTab} />}
+          {page === "Settings" && <StoreSettings initialTab={settingsTab ?? "profile"} />}
           <footer className="page-footer">
             <span>
               <Leaf size={12} /> A little more control. A lot less guesswork.

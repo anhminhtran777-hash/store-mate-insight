@@ -18,7 +18,7 @@ export const Route = createFileRoute("/settings")({
     ],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: search.tab === "appearance" ? ("appearance" as const) : ("profile" as const),
+    tab: search["tab"] === "appearance" ? ("appearance" as const) : ("profile" as const),
   }),
   component: SettingsPage,
 });
