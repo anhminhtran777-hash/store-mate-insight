@@ -1011,7 +1011,7 @@ function Orders() {
         <Button disabled={!suppliers.length} onClick={() => { setSupplier(suppliers[0] ?? ""); setQuantities({}); setRequestError(""); setRequestSearch(""); setRequestOpen(true); }}><Plus />New purchase request</Button>
       </div>
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="request-dialog">
           <DialogHeader>
             <DialogTitle>New purchase request</DialogTitle>
             <DialogDescription>Supplier: {supplier || "Not selected"}</DialogDescription>
@@ -1023,7 +1023,7 @@ function Orders() {
               </select>
             </label>
             <div className="search-input"><Search size={16} /><input aria-label="Search supplier products" placeholder="Search products or pack sizes…" value={requestSearch} onChange={(e) => setRequestSearch(e.target.value)} /></div>
-            <div className="table-overflow max-h-80 overflow-y-auto">
+            <div className="table-overflow request-table">
               <table>
                 <thead><tr><th>Product</th><th>Unit cost</th><th>Quantity</th></tr></thead>
                 <tbody>{supplierProducts.filter((p) => `${p.name} ${p.size} ${p.sku}`.toLowerCase().includes(requestSearch.toLowerCase())).map((p) => <tr key={p.id}>
