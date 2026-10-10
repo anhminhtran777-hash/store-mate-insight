@@ -36,6 +36,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +103,7 @@ export function Logo() {
     </div>
   );
 }
-export function Workspace({ page = "Inventory" }: { page?: string }) {
+export function Workspace({ page = "Inventory", settingsTab }: { page?: string; settingsTab?: "profile" | "appearance" }) {
   const { state, user, role, storeName, pinned, setPinned, budget } = useStockPilot();
   const manager = role === "Manager";
   const allowed = canAccessPage(role, page);
@@ -199,7 +200,28 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
             <div className="notification-anchor">
               <NotificationCenter />
             </div>
-            <div className="avatar small" title={`${user} · ${role}`}>{role === "Manager" ? "DM" : "DS"}</div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="avatar small avatar-trigger" title={`${user} · ${role}`} aria-label="Account menu">{role === "Manager" ? "DM" : "DS"}</button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="profile-menu">
+                <DropdownMenuLabel>
+                  <div className="profile-menu-user">
+                    <div className="avatar">{user.split(" ").map((n) => n[0]).join("").slice(0, 2)}</div>
+                    <div>
+                      <strong>{user}</strong>
+                      <span>{role === "Manager" ? "Store manager" : "Store staff"}</span>
+                    </div>
+                  </div>
+                  <div className="profile-menu-store"><Store size={13} /> {storeName} · Main store</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "profile" }}><Settings size={15} /> Store profile & settings</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "appearance" }}><SlidersHorizontal size={15} /> Appearance & themes</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link to="/login"><LogOut size={15} /> Sign out</Link></DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="page-content">
@@ -389,7 +411,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
           {allowed && page === "Documents" && <Documents />}
           {allowed && page === "Reports" && <ReportsPanel />}
           {allowed && page === "Activity Log" && <ActivityTable />}
-          {page === "Settings" && <StoreSettings />}
+          {page === "Settings" && <StoreSettings initialTab={settingsTab ?? "profile"} />}
           <footer className="page-footer">
             <span>
               <Leaf size={12} /> A little more control. A lot less guesswork.
@@ -1302,12 +1324,12 @@ function Dashboard() {
     </>
   );
 }
-function StoreSettings() {
+function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "appearance" }) {
   const { storeName, setStoreName, user, setUser, role, pinned, setPinned, budget, setBudget } =
     useStockPilot();
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<"profile" | "appearance">("profile");
+  const [tab, setTab] = useState<"profile" | "appearance">(initialTab);
   return (
     <section className="settings-section">
       <div className="settings-tabs" role="tablist" aria-label="Settings">

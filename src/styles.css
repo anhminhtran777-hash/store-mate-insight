@@ -537,6 +537,44 @@
   height: 30px;
   font-size: 10px;
 }
+.avatar-trigger {
+  cursor: pointer;
+  border: none;
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+.avatar-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.profile-menu {
+  min-width: 230px;
+}
+.profile-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.profile-menu-user .avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.8rem;
+}
+.profile-menu-user strong {
+  display: block;
+  font-size: 0.85rem;
+}
+.profile-menu-user span {
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+}
+.profile-menu-store {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
 .workspace-main {
   transition: margin-left 0.23s;
 }
