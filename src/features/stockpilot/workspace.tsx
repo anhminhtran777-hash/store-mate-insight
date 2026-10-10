@@ -718,11 +718,20 @@ function ProductModal({
       setState((s) => changeStock(s, p.id, q, mode, user, time));
     } else if (mode === "remove" || mode === "return") {
       const q = Number(data.get("quantity"));
-      const reason = [String(data.get("reason") ?? ""), String(data.get("note") ?? "").trim()]
+      const memoNo = String(data.get("memoNumber") ?? "").trim();
+      const memoDate = String(data.get("memoDate") ?? "");
+      const noMemo = data.get("noMemo") === "on";
+      const memo =
+        mode !== "return" ? "" : noMemo ? "No credit memo" : `Credit memo ${memoNo} (${memoDate})`;
+      const reason = [String(data.get("reason") ?? ""), String(data.get("note") ?? "").trim(), memo]
         .filter(Boolean)
         .join(" — ");
       if (!p || q <= 0 || !Number.isInteger(q) || q > p.stock) {
         setError("Enter a valid whole quantity within available stock.");
+        return;
+      }
+      if (mode === "return" && !noMemo && (!memoNo || !memoDate)) {
+        setError("Enter the credit memo number and date, or tick “No credit memo”.");
         return;
       }
       setState((s) => removeStock(s, p.id, q, mode, reason, user, time));
@@ -914,6 +923,7 @@ function ProductModal({
                 Note (optional)
                 <input name="note" placeholder="e.g. Cans dented in delivery" />
               </label>
+              {mode === "return" && <CreditMemoFields />}
             </>
           ) : mode === "archive" ? (
             <p className="text-sm text-muted-foreground">
@@ -1470,5 +1480,29 @@ export function Login() {
         <span className="login-copyright">© 2026 StockPilot. A smarter store starts here.</span>
       </div>
     </div>
+  );
+}
+
+/** Supplier credit memo details for a return; can be skipped when no document was issued. */
+function CreditMemoFields() {
+  const [none, setNone] = useState(false);
+  return (
+    <fieldset className="grid gap-2 rounded-md border border-border p-3">
+      <legend className="px-1 text-sm font-medium">Credit memo</legend>
+      <div className="form-two">
+        <label>
+          Document number
+          <input name="memoNumber" placeholder="e.g. CM-0001234" disabled={none} required={!none} />
+        </label>
+        <label>
+          Document date
+          <input name="memoDate" type="date" disabled={none} required={!none} />
+        </label>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="noMemo" checked={none} onChange={(e) => setNone(e.target.checked)} />
+        No credit memo (no documents for this return)
+      </label>
+    </fieldset>
   );
 }
