@@ -21,3 +21,4 @@
 - Keep supplier confirmation separate from order approval and stock receipt; receipt requires supplier invoice and delivery note and links their immutable document identities to a goods receipt, preventing paperwork from changing stock or charging twice.
 - Keep researched supplier catalogue entries and their source references in a browser-safe data module; append stable demo identities without replacing existing products or inventing historical stock.
 - Derive grouped notifications from current inventory and orders in a pure adapter; keep read/dismiss status session-only above the outlet and key it to alert contents so changed conditions surface again.
+- Keep supplier-document issue reports and their refund/close transitions in the pure model; refunds return money to the purchase budget without changing stock, so reporting never alters inventory.

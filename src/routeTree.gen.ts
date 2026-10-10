@@ -17,6 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const OrdersRoute = OrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/documents': typeof DocumentsRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
+  '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/login'
     | '/orders'
+    | '/reports'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/login'
     | '/orders'
+    | '/reports'
     | '/settings'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/login'
     | '/orders'
+    | '/reports'
     | '/settings'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   DocumentsRoute: typeof DocumentsRoute
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRoute
+  ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentsRoute: DocumentsRoute,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRoute,
+  ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport
