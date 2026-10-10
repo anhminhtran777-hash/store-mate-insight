@@ -76,7 +76,7 @@ import { AppearanceSettings } from "./appearance";
 import { NotificationCenter } from "./notifications";
 import { ReportsPanel } from "./reports";
 import { Flag } from "lucide-react";
-import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
+import logoUrl from "@/assets/stock-genie-logo.png";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", to: "/", icon: Package },
@@ -99,7 +99,7 @@ const categoryIcons = {
 export function Logo() {
   return (
     <div className="logo">
-      <img src={logoAsset.url} alt="Stock Genie logo" className="logo-image" width={40} height={40} />
+      <img src={logoUrl} alt="Stock Genie logo" className="logo-image" width={40} height={40} />
       <span>
         Stock Genie<span className="logo-dot">.</span>
       </span>
