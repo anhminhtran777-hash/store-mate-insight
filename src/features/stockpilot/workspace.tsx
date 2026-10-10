@@ -72,6 +72,8 @@ import { Assistant } from "./assistant";
 import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
 import { NotificationCenter } from "./notifications";
+import { ReportsPanel } from "./reports";
+import { Flag } from "lucide-react";
 import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
@@ -80,6 +82,7 @@ const navItems = [
   { name: "AI Assistant", to: "/assistant", icon: Bot },
   { name: "Purchase Orders", to: "/orders", icon: ShoppingCart },
   { name: "Documents", to: "/documents", icon: FileText },
+  { name: "Reports", to: "/reports", icon: Flag },
   { name: "Activity Log", to: "/activity", icon: History },
   { name: "Settings", to: "/settings", icon: Settings },
 ] as const;
@@ -161,6 +164,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                 <span>{n.name}</span>
                 {n.name === "Inventory" && <small>{active.length}</small>}
                 {n.name === "Purchase Orders" && <i className="nav-order-dot" />}
+                {n.name === "Reports" && (state.reports ?? []).some((r) => r.status === "Open") && <small>{(state.reports ?? []).filter((r) => r.status === "Open").length}</small>}
               </Link>
             </Button>
           ))}
@@ -225,7 +229,9 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                         ? "Receipts and supplier paperwork, all in one place."
                         : page === "Purchase Orders"
                       ? "From a smarter reorder to a well-stocked shelf."
-                      : page === "Activity Log"
+                      : page === "Reports"
+                      ? "Issues staff found on supplier paperwork, ready to resolve."
+                    : page === "Activity Log"
                         ? "Every change, with a clear trail."
                         : page === "Settings"
                           ? "Make Stock Genie feel like your store."
@@ -298,7 +304,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
           {!allowed && (
             <section className="settings-section">
               <h2>Manager access only</h2>
-              <p>Your Demo Staff profile can use Inventory, Cashier, Purchase Orders and Settings. Ask a manager for this page.</p>
+              <p>Your Demo Staff profile can use Inventory, Cashier, Purchase Orders, Documents and Settings. Ask a manager for this page.</p>
               <Button asChild><Link to="/">Back to inventory</Link></Button>
             </section>
           )}
@@ -392,6 +398,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
           {page === "Purchase Orders" && <Orders />}
           {page === "Cashier" && <Cashier />}
           {allowed && page === "Documents" && <Documents />}
+          {allowed && page === "Reports" && <ReportsPanel />}
           {allowed && page === "Activity Log" && <ActivityTable />}
           {page === "Settings" && <StoreSettings />}
           <footer className="page-footer">

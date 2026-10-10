@@ -75,6 +75,7 @@ export type StoreState = {
   activities: Activity[];
   orders: Order[];
   documents: StoreDocument[];
+  reports?: DocumentReport[] | undefined;
 };
 const rows: [string, string, Category, number, number, number, number, string, string][] = [
   [
@@ -691,11 +692,95 @@ export function refundSale(
 /** Demo profiles: staff run the shop floor, managers get everything. */
 export type Role = "Manager" | "Staff";
 export const demoProfiles: Record<Role, string> = { Manager: "Demo Manager", Staff: "Demo Staff" };
-export const staffPages = ["Inventory", "Cashier", "Purchase Orders", "Settings"] as const;
+export const staffPages = ["Inventory", "Cashier", "Purchase Orders", "Documents", "Settings"] as const;
 export type Permission = "manageProducts" | "adjustStock" | "approveOrders" | "storeSettings" | "viewFinance";
 export function canAccessPage(role: Role, page: string) {
   return role === "Manager" || (staffPages as readonly string[]).includes(page);
 }
 export function can(role: Role, _permission: Permission) {
   return role === "Manager";
+}
+
+/** Staff-raised problems with supplier paperwork; managers resolve them with supplier refunds. */
+export const reportIssues = ["Missing items", "Damaged items", "Wrong item", "Price mismatch", "Other"] as const;
+export type ReportLine = { name: string; quantity: number; unit: number; productId?: string | undefined };
+export type DocumentReport = {
+  id: string;
+  documentId: string;
+  documentLabel: string;
+  supplier: string;
+  reference: string;
+  issue: (typeof reportIssues)[number];
+  lines: ReportLine[];
+  note: string;
+  reporter: string;
+  time: string;
+  status: "Open" | "Refunded" | "Closed";
+  resolvedBy?: string | undefined;
+  resolution?: string | undefined;
+  refund?: number | undefined;
+};
+export const reportableKinds: StoreDocument["kind"][] = ["Invoice", "Delivery note", "Goods receipt", "Purchase order"];
+export const reportValue = (r: Pick<DocumentReport, "lines">) =>
+  Math.round(r.lines.reduce((n, l) => n + l.quantity * l.unit, 0) * 100) / 100;
+export function reportDocumentIssue(
+  state: StoreState,
+  doc: StoreDocument,
+  issue: DocumentReport["issue"],
+  lines: ReportLine[],
+  note: string,
+  reporter: string,
+  time: string,
+): StoreState {
+  if (!reportableKinds.includes(doc.kind)) return state;
+  const clean = lines.filter((l) => l.quantity > 0 && Number.isInteger(l.quantity));
+  const original = new Map(doc.lines.map((l) => [l.name, l.quantity]));
+  if (clean.some((l) => l.quantity > (original.get(l.name) ?? 0))) return state;
+  if (!clean.length && !note.trim()) return state;
+  const reports = state.reports ?? [];
+  const report: DocumentReport = {
+    id: `RPT-${String(reports.length + 1).padStart(3, "0")}`,
+    documentId: doc.id,
+    documentLabel: `${doc.kind} ${doc.number ?? doc.reference}`,
+    supplier: doc.party,
+    reference: doc.reference,
+    issue,
+    lines: clean,
+    note: note.trim(),
+    reporter,
+    time,
+    status: "Open",
+  };
+  return {
+    ...state,
+    reports: [report, ...reports],
+    activities: [
+      { id: `${time}-${report.id}`, product: doc.reference, actor: reporter, action: `Reported ${issue.toLowerCase()} (${report.id})`, reason: report.note || undefined, time },
+      ...state.activities,
+    ],
+  };
+}
+/** Supplier refund for a report: money comes back into the purchase budget; stock is unchanged. */
+export function refundReport(state: StoreState, id: string, amount: number, memo: string, actor: string, time: string): StoreState {
+  const r = (state.reports ?? []).find((x) => x.id === id);
+  if (!r || r.status !== "Open" || !(amount > 0)) return state;
+  const refund = Math.round(amount * 100) / 100;
+  const resolution = memo.trim() ? `Credit memo ${memo.trim()}` : "No credit memo";
+  return {
+    ...state,
+    reports: (state.reports ?? []).map((x) => (x.id === id ? { ...x, status: "Refunded", refund, resolvedBy: actor, resolution } : x)),
+    activities: [
+      { id: `${time}-${id}-refund`, product: r.reference, actor, action: `Supplier refund for ${id}`, amount: refund, flow: "refund", reason: `${r.issue} — ${r.supplier} — ${resolution}`, time },
+      ...state.activities,
+    ],
+  };
+}
+export function closeReport(state: StoreState, id: string, note: string, actor: string, time: string): StoreState {
+  const r = (state.reports ?? []).find((x) => x.id === id);
+  if (!r || r.status !== "Open") return state;
+  return {
+    ...state,
+    reports: (state.reports ?? []).map((x) => (x.id === id ? { ...x, status: "Closed", resolvedBy: actor, resolution: note.trim() || "Closed without refund" } : x)),
+    activities: [{ id: `${time}-${id}-close`, product: r.reference, actor, action: `Closed report ${id}`, reason: note.trim() || undefined, time }, ...state.activities],
+  };
 }

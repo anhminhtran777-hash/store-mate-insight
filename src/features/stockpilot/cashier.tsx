@@ -3,9 +3,10 @@ import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2, C
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
-import { checkout, findCashierItem, groupByBarcode, money, productBarcodes, type BarcodeGroup, type CartLine, type StoreDocument } from "./model";
+import { checkout, findCashierItem, groupByBarcode, money, productBarcodes, type BarcodeGroup, type CartLine, type StoreDocument, reportableKinds } from "./model";
 import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
+import { ReportIssueButton } from "./reports";
 
 /** Opens the browser print dialog for one document only. */
 function printDocument() {
@@ -160,6 +161,7 @@ export function DocumentDialog({
               <Printer />
               Print
             </Button>
+            <ReportIssueButton doc={doc} />
             {doc.sentTo ? (
               <span className="positive text-sm">Digital copy sent to {doc.sentTo}</span>
             ) : (
@@ -448,16 +450,17 @@ export function Cashier() {
 
 const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator, "Credit memo": Undo2 };
 export function Documents() {
-  const { state } = useStockPilot();
+  const { state, role } = useStockPilot();
+  const staff = role !== "Manager";
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
   const [open, setOpen] = useState<StoreDocument | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [memoOpen, setMemoOpen] = useState(false);
-  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter || (filter === "Accounting invoice" && d.kind === "Credit memo"));
+  const docs = (state.documents ?? []).filter((d) => !staff || reportableKinds.includes(d.kind)).filter((d) => filter === "All" || d.kind === filter || (filter === "Accounting invoice" && d.kind === "Credit memo"));
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
-        {(["All", "Receipt", "Refund receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt", "Accounting invoice"] as const).map((f) => (
+        {(["All", "Receipt", "Refund receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt", "Accounting invoice"] as const).filter((f) => !staff || f === "All" || reportableKinds.includes(f)).map((f) => (
           <Button
             key={f}
             variant="ghost"
