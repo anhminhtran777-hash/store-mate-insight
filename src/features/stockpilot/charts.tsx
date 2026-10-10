@@ -15,7 +15,7 @@ import {
   type ChartPeriod,
   type PeriodChartPoint,
 } from "./chart-data";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 
 type Metric = "stock" | "value" | "received";
 function TrendChart({
@@ -244,24 +244,28 @@ export function ProductCharts({ product }: { product: Product }) {
     <div className="product-charts">
       <div className="chart-controls">
         <span>{period === "Daily" ? "Last 30 days" : "Available history · 2026"}</span>
-        <ToggleGroup
-          type="single"
-          value={period}
+        <div
+          role="group"
           aria-label="Chart interval"
           className="chart-period-switch"
-          onValueChange={(value) => {
-            if (chartPeriods.some((option) => option === value)) {
-              setPeriod(value as ChartPeriod);
-              setActive(null);
-            }
-          }}
         >
           {chartPeriods.map((option) => (
-            <ToggleGroupItem key={option} value={option} aria-label={option}>
+            <Button
+              key={option}
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={period === option}
+              data-state={period === option ? "on" : "off"}
+              onClick={() => {
+                setPeriod(option);
+                setActive(null);
+              }}
+            >
               {option}
-            </ToggleGroupItem>
+            </Button>
           ))}
-        </ToggleGroup>
+        </div>
       </div>
       <div className="charts-grid">
         <ChartBlock
