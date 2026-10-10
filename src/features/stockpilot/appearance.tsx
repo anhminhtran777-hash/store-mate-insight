@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode, type Context } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,7 +8,10 @@ export const themes = [
   { id: "daylight", name: "Daylight", description: "Cool white · ocean blue", dark: false },
 ] as const;
 type Theme = (typeof themes)[number]["id"];
-const AppearanceContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void } | null>(null);
+type AppearanceValue = { theme: Theme; setTheme: (theme: Theme) => void };
+// Keep one context instance across hot reloads so the tab never loses its provider.
+const appearanceStore = globalThis as unknown as { __stockpilotAppearance__?: Context<AppearanceValue | null> };
+const AppearanceContext = (appearanceStore.__stockpilotAppearance__ ??= createContext<AppearanceValue | null>(null));
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("forest");

@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -232,7 +232,7 @@ function TrendChart({
 export function ProductCharts({ product }: { product: Product }) {
   const [active, setActive] = useState<number | null>(null);
   const [period, setPeriod] = useState<ChartPeriod>("Monthly");
-  const points = periodChartData(product, period);
+  const points = useMemo(() => periodChartData(product, period), [product, period]);
   const first = points[0];
   const last = points.at(-1);
   const range =
