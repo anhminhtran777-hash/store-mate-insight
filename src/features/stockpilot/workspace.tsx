@@ -266,18 +266,18 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               {manager && <Metric
                 title="Purchase budget"
                 value={money(budgetLeft)}
-                icon={<Wallet />}}
+                icon={<Wallet />}
                 note={`${money(committed)} committed of ${money(budget)}`}
                 trend={budgetLeft < 0 ? "Over budget" : "Left to spend this month"}
                 warning={budgetLeft < 0}
-              />
+              />}
               {manager && <Metric
                 title="Revenue"
                 value={money(revenue)}
-                icon={<TrendingUp />}}
+                icon={<TrendingUp />}
                 note="From sold stock"
                 trend="Sales this session"
-              />
+              />}
               <Metric
                 title="Low-stock items"
                 value={String(low.length)}
