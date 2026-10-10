@@ -5,3 +5,4 @@
 - [x] Verify demo flows and local business-rule tests.
 - [x] Add styled daily charts with date-specific hover values and verify interactions.
 - [x] Add daily/weekly/monthly/yearly chart options and verify clear received-versus-sold grouping.
+- [ ] Add Appearance settings with workspace-wide themes and verify switching across navigation.
