@@ -303,7 +303,7 @@ export function Cashier() {
           <strong>{money(total)}</strong>
         </div>
         <div className="numpad" role="group" aria-label="Cashier numpad">
-          {["/", "*", "-", "7", "8", "9", "+", "4", "5", "6", "1", "2", "3", "Enter", "0", ".", "Backspace"].map(
+          {["/", "*", "-", "Backspace", "7", "8", "9", "+", "4", "5", "6", ".", "1", "2", "3", "Enter", "0"].map(
             (k) => (
               <button
                 key={k}

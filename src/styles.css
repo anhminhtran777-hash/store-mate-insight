@@ -2309,9 +2309,8 @@
 .numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
 .numpad-key { padding: 0.65rem 0; border-radius: 0.6rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); font: 600 1rem ui-monospace, monospace; }
 .numpad-key:active { transform: scale(0.97); }
-.numpad > :nth-child(1) { grid-column: 2; }
 .numpad-enter { grid-row: span 2; background: var(--primary); color: var(--primary-foreground); font-size: 0.8rem; }
-.numpad-back { grid-column: 4; }
+.numpad-zero { grid-column: span 3; }
 .numpad-help { display: grid; gap: 0.2rem; font-size: 0.72rem; color: var(--muted-foreground); }
 .numpad-help div { display: flex; justify-content: space-between; gap: 0.5rem; }
 .numpad-help dt { font-weight: 600; color: var(--foreground); }
