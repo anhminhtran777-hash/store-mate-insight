@@ -44,7 +44,26 @@ export type Order = {
   date: string;
   lines: { productId: string; quantity: number }[];
 };
-export type StoreState = { products: Product[]; activities: Activity[]; orders: Order[] };
+export type DocLine = { name: string; quantity: number; unit: number };
+export type StoreDocument = {
+  id: string;
+  kind: "Receipt" | "Purchase order" | "Delivery note";
+  reference: string;
+  party: string;
+  actor: string;
+  time: string;
+  lines: DocLine[];
+  total: number;
+  paid?: number | undefined;
+  method?: "Cash" | "Card" | undefined;
+  sentTo?: string | undefined;
+};
+export type StoreState = {
+  products: Product[];
+  activities: Activity[];
+  orders: Order[];
+  documents: StoreDocument[];
+};
 const rows: [string, string, Category, number, number, number, number, string, string][] = [
   [
     "Coca-Cola Original",
@@ -102,6 +121,7 @@ export const demoProducts: Product[] = rows.map((r, i) => ({
   sold: [108, 130, 152, 152, 182, 152].map((n) => Math.round(n / (1 + i * 0.3))),
 }));
 export const initialState: StoreState = {
+  documents: [],
   products: demoProducts,
   activities: [
     {
@@ -285,6 +305,63 @@ export function orderCost(state: StoreState, order: Order): number {
     0,
   );
 }
+function orderDocument(
+  state: StoreState,
+  order: Order,
+  kind: "Purchase order" | "Delivery note",
+  actor: string,
+  time: string,
+): StoreDocument {
+  const lines = order.lines.map((l) => {
+    const p = state.products.find((p) => p.id === l.productId);
+    return { name: p ? `${p.name} (${p.size})` : l.productId, quantity: l.quantity, unit: p?.cost ?? 0 };
+  });
+  return {
+    id: `${kind === "Purchase order" ? "PO" : "DN"}-${order.id}-${time}`,
+    kind,
+    reference: order.id,
+    party: order.supplier,
+    actor,
+    time,
+    lines,
+    total: lines.reduce((n, l) => n + l.quantity * l.unit, 0),
+  };
+}
+export type CartLine = { productId: string; quantity: number };
+/** Sells a whole cart: lowers stock, logs each sale and issues one receipt. Rejects carts exceeding stock. */
+export function checkout(
+  state: StoreState,
+  cart: CartLine[],
+  method: "Cash" | "Card",
+  paid: number | undefined,
+  actor: string,
+  time: string,
+  receiptNo: string,
+): { state: StoreState; receipt?: StoreDocument } {
+  const lines: DocLine[] = [];
+  for (const c of cart) {
+    const p = state.products.find((p) => p.id === c.productId);
+    if (!p || p.archived || !Number.isInteger(c.quantity) || c.quantity <= 0 || c.quantity > p.stock)
+      return { state };
+    lines.push({ name: p.name, quantity: c.quantity, unit: p.price });
+  }
+  const total = lines.reduce((n, l) => n + l.quantity * l.unit, 0);
+  if (!lines.length || (method === "Cash" && (paid ?? 0) < total - 0.001)) return { state };
+  const sold = cart.reduce((s, c) => changeStock(s, c.productId, c.quantity, "sell", actor, time), state);
+  const receipt: StoreDocument = {
+    id: receiptNo,
+    kind: "Receipt",
+    reference: receiptNo,
+    party: "Walk-in customer",
+    actor,
+    time,
+    lines,
+    total,
+    paid: method === "Cash" ? paid : total,
+    method,
+  };
+  return { state: { ...sold, documents: [receipt, ...sold.documents] }, receipt };
+}
 export function approveOrder(
   state: StoreState,
   id: string,
@@ -297,6 +374,7 @@ export function approveOrder(
   return {
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
+    documents: [orderDocument(state, order, "Purchase order", actor, time), ...state.documents],
     activities: [
       {
         id: `${time}-${id}`,
@@ -327,6 +405,7 @@ export function receiveOrder(
   return {
     ...updated,
     orders: updated.orders.map((o) => (o.id === id ? { ...o, status: "Received" } : o)),
+    documents: [orderDocument(state, order, "Delivery note", actor, time), ...updated.documents],
     activities: [
       {
         id: `${time}-${id}-received`,
