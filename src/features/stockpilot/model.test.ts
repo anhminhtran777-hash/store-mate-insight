@@ -6,6 +6,7 @@ import {
   receiveOrder,
   trendColor,
   isLowStock,
+  restockQuantity,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("StockPilot inventory demo", () => {
@@ -64,5 +65,14 @@ describe("StockPilot inventory demo", () => {
     const product = initialState.products[1];
     if (!product) throw new Error("Missing demo product");
     expect(isLowStock({ ...product, archived: true })).toBe(false);
+  });
+  it("manual restock tops up to twice the reorder point, at least one reorder point", () => {
+    const low = initialState.products[1];
+    const healthy = initialState.products[0];
+    if (!low || !healthy) throw new Error("Missing demo products");
+    expect(restockQuantity(low)).toBe(30);
+    expect(restockQuantity(healthy)).toBe(24);
+    const s = changeStock(initialState, low.id, restockQuantity(low), "receive", "Alex Morgan", time);
+    expect(s.products[1]?.stock).toBe(low.stock + 30);
   });
 });

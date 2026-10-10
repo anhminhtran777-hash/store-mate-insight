@@ -18,6 +18,8 @@ type DemoContext = {
   setStoreName: (n: string) => void;
   pinned: boolean;
   setPinned: (b: boolean) => void;
+  budget: number;
+  setBudget: (n: number) => void;
 };
 const Context = createContext<DemoContext | null>(null);
 export function StockPilotProvider({ children }: { children: ReactNode }) {
@@ -26,6 +28,7 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState("Alex Morgan");
   const [storeName, setStoreName] = useState("Corner Market");
   const [pinned, setPinned] = useState(true);
+  const [budget, setBudget] = useState(1500);
   return (
     <Context.Provider
       value={{
@@ -39,6 +42,8 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
         setStoreName,
         pinned,
         setPinned,
+        budget,
+        setBudget,
       }}
     >
       {children}

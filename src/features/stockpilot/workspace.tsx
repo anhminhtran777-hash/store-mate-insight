@@ -32,6 +32,8 @@ import {
   Wheat,
   Apple,
   SprayCan,
+  PackagePlus,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +48,7 @@ import {
   categories,
   isLowStock,
   money,
+  restockQuantity,
   changeStock,
   approveOrder,
   receiveOrder,
@@ -84,7 +87,19 @@ export function Logo() {
   );
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
-  const { state, user, storeName, pinned, setPinned } = useStockPilot();
+  const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
+  const committed = state.orders
+    .filter((o) => o.status !== "Received")
+    .reduce(
+      (n, o) =>
+        n +
+        o.lines.reduce(
+          (m, l) => m + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
+          0,
+        ),
+      0,
+    );
+  const budgetLeft = budget - committed;
   const [hover, setHover] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
@@ -256,6 +271,14 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                 icon={<ShoppingCart />}
                 note="Total stock at cost"
                 trend="Live inventory value"
+              />
+              <Metric
+                title="Purchase budget"
+                value={money(budgetLeft)}
+                icon={<Wallet />}
+                note={`${money(committed)} committed of ${money(budget)}`}
+                trend={budgetLeft < 0 ? "Over budget" : "Left to spend this month"}
+                warning={budgetLeft < 0}
               />
               <Metric
                 title="Low-stock items"
@@ -443,7 +466,7 @@ function ProductDetail({
 }: {
   open: (mode: "edit" | "receive" | "sell" | "archive") => void;
 }) {
-  const { state, selectedId } = useStockPilot();
+  const { state, setState, selectedId, user } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
   if (!p) return <div className="empty-state">Select a product.</div>;
   const Icon = categoryIcons[p.category];
@@ -559,6 +582,20 @@ function ProductDetail({
         <Button size="sm" disabled={p.archived} onClick={() => open("receive")}>
           <ArrowDownToLine />
           Receive stock
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={p.archived}
+          title={`Restock to ${p.threshold * 2} units`}
+          onClick={() =>
+            setState((s) =>
+              changeStock(s, p.id, restockQuantity(p), "receive", user, new Date().toISOString()),
+            )
+          }
+        >
+          <PackagePlus />
+          Restock now
         </Button>
       </div>
       <div className="recent-activity">
@@ -1074,7 +1111,8 @@ function Dashboard() {
   );
 }
 function StoreSettings() {
-  const { storeName, setStoreName, user, setUser, pinned, setPinned } = useStockPilot();
+  const { storeName, setStoreName, user, setUser, pinned, setPinned, budget, setBudget } =
+    useStockPilot();
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
@@ -1093,11 +1131,20 @@ function StoreSettings() {
           const data = new FormData(e.currentTarget);
           setStoreName(String(data.get("store")));
           setUser(String(data.get("manager")));
+          const b = Number(data.get("budget"));
+          if (Number.isFinite(b) && b >= 0) setBudget(b);
           setSaved(true);
         }}
       >
         <Field label="Store name" name="store" value={storeName} />
         <Field label="Store manager" name="manager" value={user} />
+        <Field
+          label="Monthly purchase budget ($)"
+          name="budget"
+          type="number"
+          step="0.01"
+          value={budget}
+        />
         <label>
           Currency
           <input value="USD — US Dollar (demo)" readOnly />
