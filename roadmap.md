@@ -1,5 +1,5 @@
 # Stock Genie
-- [ ] Organize the bell alerts into a bounded notification center with grouped items, next steps, filters, and session-wide read/dismiss controls; verify interactions.
+- [x] Organize the bell alerts into a bounded notification center with grouped items, next steps, filters, and session-wide read/dismiss controls; verify interactions.
 - [x] Create polished inventory workspace and floating pinnable sidebar.
 - [x] Connect product management, stock changes, charts, and activity.
 - [x] Add demo login, navigation, simulated assistant, order approval, and settings.
