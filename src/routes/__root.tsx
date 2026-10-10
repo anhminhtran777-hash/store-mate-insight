@@ -45,7 +45,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
     // A page chunk went stale after an update: reload once to fetch the fresh version.
-    if (STALE_CHUNK.test(String(error?.message ?? error))) {
+    if (STALE_CHUNK.test(error instanceof Error ? error.message : String(error))) {
       const key = "stockpilot-chunk-reload";
       const last = Number(sessionStorage.getItem(key) ?? 0);
       if (Date.now() - last > 10000) {
