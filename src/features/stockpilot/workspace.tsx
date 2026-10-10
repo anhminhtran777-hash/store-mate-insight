@@ -32,6 +32,8 @@ import {
   Wheat,
   Apple,
   SprayCan,
+  PackagePlus,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +48,7 @@ import {
   categories,
   isLowStock,
   money,
+  restockQuantity,
   changeStock,
   approveOrder,
   receiveOrder,
