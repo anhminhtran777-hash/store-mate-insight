@@ -54,6 +54,8 @@
   --accent: oklch(0.948 0.015 152);
   --destructive: oklch(0.59 0.16 28);
   --chart-down: oklch(0.54 0.23 27);
+  --stat-up: oklch(0.48 0.12 155);
+  --stat-down: oklch(0.54 0.23 27);
   --warning-bg: oklch(0.965 0.034 65);
   --warning-fg: oklch(0.63 0.13 52);
   --border: oklch(0.913 0.008 120);
@@ -281,6 +283,10 @@
   --chart-fill: oklch(0.52 0.11 50 / 0.07);
   --chart-area-top: oklch(0.52 0.11 50 / 0.24);
   --chart-area-bottom: oklch(0.52 0.11 50 / 0.015);
+}
+.dark {
+  --stat-up: oklch(0.76 0.14 155);
+  --stat-down: oklch(0.73 0.21 27);
 }
 @layer base {
   * {
@@ -705,10 +711,10 @@
   color: var(--warning-fg);
 }
 .positive {
-  color: var(--primary);
+  color: var(--stat-up);
 }
 .negative {
-  color: var(--destructive);
+  color: var(--stat-down);
 }
 .inventory-split {
   display: grid;
@@ -1068,11 +1074,11 @@
   color: var(--muted-foreground);
 }
 .detail-stat-grid span.positive {
-  color: var(--primary);
+  color: var(--stat-up);
   font-size: 8px;
 }
 .detail-stat-grid span.negative {
-  color: var(--destructive);
+  color: var(--stat-down);
   font-size: 8px;
 }
 .detail-stat-grid strong {
