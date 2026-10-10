@@ -22,3 +22,4 @@
 - Keep researched supplier catalogue entries and their source references in a browser-safe data module; append stable demo identities without replacing existing products or inventing historical stock.
 - Derive grouped notifications from current inventory and orders in a pure adapter; keep read/dismiss status session-only above the outlet and key it to alert contents so changed conditions surface again.
 - Keep supplier-document issue reports and their refund/close transitions in the pure model; refunds return money to the purchase budget without changing stock, so reporting never alters inventory.
+- Persist account-scoped preferences (theme, settings, sidebar, store profile) per signed-in local account in browser storage via the accounts module; inventory transactions stay session-only so the demo resets cleanly.

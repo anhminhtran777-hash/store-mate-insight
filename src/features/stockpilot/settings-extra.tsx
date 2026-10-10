@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { loadPrefs, savePrefs } from "./accounts";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -94,11 +95,9 @@ const defaults: Record<string, string | boolean> = {
   footer: "Thank you for shopping with us!", language: "English", timezone: "Europe/Sofia (UTC+3)",
   dateFormat: "DD/MM/YYYY", timeFormat: "24-hour", week: "Monday", twoFactor: false, autoLock: "15 minutes", pin: true,
 };
-// Session-only store shared across tab switches and navigation.
-const sessionValues: Record<string, string | boolean> = { ...defaults };
 
 export function ExtraSettings({ tab }: { tab: ExtraTab }) {
-  const [values, setValues] = useState<Record<string, string | boolean>>({ ...sessionValues });
+  const [values, setValues] = useState<Record<string, string | boolean>>(() => ({ ...defaults, ...((loadPrefs()["extra"] as Record<string, string | boolean>) ?? {}) }));
   const [saved, setSaved] = useState(false);
   const set = (k: string, v: string | boolean) => { setValues((p) => ({ ...p, [k]: v })); setSaved(false); };
   const label = extraTabs.find((t) => t.id === tab)?.label;
@@ -109,7 +108,8 @@ export function ExtraSettings({ tab }: { tab: ExtraTab }) {
         e.preventDefault();
         const clean = { ...values };
         if (tab === "security") { clean["current"] = ""; clean["next"] = ""; }
-        Object.assign(sessionValues, clean);
+        const { current: _c, next: _n, ...keep } = clean;
+        savePrefs({ extra: { ...((loadPrefs()["extra"] as object) ?? {}), ...keep } });
         setValues(clean);
         setSaved(true);
       }}

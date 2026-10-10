@@ -45,6 +45,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { findAccount, setCurrentAccount, usePref } from "./accounts";
 import { useStockPilot } from "./store";
 import {
   categories,
@@ -179,7 +180,7 @@ export function Workspace({ page = "Inventory", settingsTab }: { page?: string; 
               <span>{role === "Manager" ? "Store manager" : "Store staff"}</span>
             </div>
             <Button asChild variant="nav-icon" size="icon" title="Sign out">
-              <Link to="/login">
+              <Link to="/login" onClick={() => setCurrentAccount(null)}>
                 <LogOut />
               </Link>
             </Button>
@@ -220,7 +221,7 @@ export function Workspace({ page = "Inventory", settingsTab }: { page?: string; 
                 <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "profile" }}><Settings size={15} /> Store profile & settings</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/settings" search={{ tab: "appearance" }}><SlidersHorizontal size={15} /> Appearance & themes</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link to="/login"><LogOut size={15} /> Sign out</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/login" onClick={() => setCurrentAccount(null)}><LogOut size={15} /> Sign out</Link></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -1331,13 +1332,13 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance" | ExtraTab>(initialTab);
-  const [startPage, setStartPage] = useState("Dashboard");
-  const [chartPeriod, setChartPeriod] = useState("Monthly");
-  const [sortBy, setSortBy] = useState("Name (A–Z)");
-  const [perPage, setPerPage] = useState("24");
-  const [compact, setCompact] = useState(false);
-  const [confirmLeave, setConfirmLeave] = useState(true);
-  const [tooltips, setTooltips] = useState(true);
+  const [startPage, setStartPage] = usePref("startPage", "Dashboard");
+  const [chartPeriod, setChartPeriod] = usePref("chartPeriod", "Monthly");
+  const [sortBy, setSortBy] = usePref("sortBy", "Name (A–Z)");
+  const [perPage, setPerPage] = usePref("perPage", "24");
+  const [compact, setCompact] = usePref("compact", false);
+  const [confirmLeave, setConfirmLeave] = usePref("confirmLeave", true);
+  const [tooltips, setTooltips] = usePref("tooltips", true);
   return (
     <section className="settings-section">
       <div className="settings-tabs flex-wrap" role="tablist" aria-label="Settings">
@@ -1435,14 +1436,14 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
         <Store size={18} />
         <div>
           <strong>Local demo workspace</strong>
-          <p>Changes last for this session. No external services are connected.</p>
+          <p>Settings are saved to your account in this browser. Stock and orders reset each session.</p>
         </div>
       </div>
     </section>
   );
 }
 export function Login() {
-  const { setUser, setRole, storeName } = useStockPilot();
+  const { storeName } = useStockPilot();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1492,22 +1493,26 @@ export function Login() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!email || !password) {
-                setError("Enter an email and password to continue.");
+                setError("Enter a username and password to continue.");
                 return;
               }
-              setUser((email.split("@")[0] || "Store manager").replace(/[._]/g, " "));
-              setRole("Manager");
+              const acc = findAccount(email, password);
+              if (!acc) {
+                setError("Wrong username or password. Try manager / manager123 or staff / staff123.");
+                return;
+              }
+              setCurrentAccount(acc.username);
               void navigate({ to: "/" });
             }}
           >
             <label>
-              Email address
+              Username
               <input
-                type="email"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@yourstore.com"
+                placeholder="manager or staff"
               />
             </label>
             <label>
@@ -1538,7 +1543,7 @@ export function Login() {
               asChild
               variant="outline"
               className="w-full"
-              onClick={() => { setUser(demoProfiles[r]); setRole(r); }}
+              onClick={() => setCurrentAccount(r === "Manager" ? "manager" : "staff")}
             >
               <Link to="/">
                 {r === "Manager" ? "Try the demo as Manager" : "Try the demo as Staff"}
@@ -1546,7 +1551,7 @@ export function Login() {
               </Link>
             </Button>
           ))}
-          <p className="login-demo-note">Demo sign-in only. No account required.</p>
+          <p className="login-demo-note">Test accounts: <strong>manager</strong> / manager123 · <strong>staff</strong> / staff123. Settings are saved per account in this browser.</p>
         </div>
         <span className="login-copyright">© 2026 Stock Genie. A smarter store starts here.</span>
       </div>
