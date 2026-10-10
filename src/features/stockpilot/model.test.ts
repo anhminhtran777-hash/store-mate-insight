@@ -66,6 +66,24 @@ describe("cashier numpad item lookup", () => {
     const archived = initialState.products.map((p) => (p.id === "p1" ? { ...p, archived: true } : p));
     expect(findCashierItem(archived.filter((p) => !p.archived), "Coca-Cola Original 330ml can")).toBeUndefined();
   });
+  it("finds a product by any of its extra barcodes", () => {
+    expect(idOf("5449000000996")).toBe("p1");
+  });
+});
+describe("barcode grouping", () => {
+  it("merges stacks that share a barcode and sums their quantities", () => {
+    const [a, b] = initialState.products;
+    if (!a || !b) throw new Error("Missing demo products");
+    const twin = { ...b, barcode: a.barcode, stock: 7 };
+    const groups = groupByBarcode([a, twin]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.stock).toBe(a.stock + 7);
+    expect(groups[0]?.items.map((p) => p.id)).toEqual([a.id, twin.id]);
+  });
+  it("keeps products with distinct barcodes in separate groups", () => {
+    const groups = groupByBarcode(initialState.products);
+    expect(groups).toHaveLength(initialState.products.length);
+  });
 });
 describe("manual purchase requests", () => {
   it("creates the chosen supplier and quantities as a uniquely numbered draft without stock or documents", () => {
