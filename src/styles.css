@@ -960,6 +960,8 @@
   color: var(--muted-foreground);
 }
 .chart-period-switch {
+  display: flex;
+  align-items: center;
   padding: 3px;
   gap: 2px;
   background: var(--muted);
