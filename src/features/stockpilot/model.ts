@@ -123,6 +123,8 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   emoji: r[8],
   sku: `SP-${String(1001 + i)}`,
   barcode: ean13(`500123${String(100000 + i * 7919).slice(-6)}`),
+  // Coca-Cola Original also scans under its manufacturer barcode.
+  barcodes: i === 0 ? ["5449000000996"] : undefined,
   history:
     i === 0
       ? [36, 62, 54, 82, 68, 48]
