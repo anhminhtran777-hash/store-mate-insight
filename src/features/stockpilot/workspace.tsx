@@ -1111,7 +1111,8 @@ function Dashboard() {
   );
 }
 function StoreSettings() {
-  const { storeName, setStoreName, user, setUser, pinned, setPinned } = useStockPilot();
+  const { storeName, setStoreName, user, setUser, pinned, setPinned, budget, setBudget } =
+    useStockPilot();
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
@@ -1135,6 +1136,13 @@ function StoreSettings() {
       >
         <Field label="Store name" name="store" value={storeName} />
         <Field label="Store manager" name="manager" value={user} />
+        <Field
+          label="Monthly purchase budget ($)"
+          name="budget"
+          type="number"
+          step="0.01"
+          value={budget}
+        />
         <label>
           Currency
           <input value="USD — US Dollar (demo)" readOnly />
