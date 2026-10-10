@@ -21,7 +21,11 @@ type DemoContext = {
   budget: number;
   setBudget: (n: number) => void;
 };
-const Context = createContext<DemoContext | null>(null);
+// Keep one context instance across hot reloads so provider and consumers always match.
+const globalKey = "__stockpilotContext__";
+const globalStore = globalThis as unknown as Record<string, React.Context<DemoContext | null> | undefined>;
+const Context: React.Context<DemoContext | null> =
+  globalStore[globalKey] ?? (globalStore[globalKey] = createContext<DemoContext | null>(null));
 export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(initialState);
   const [selectedId, select] = useState("p1");
