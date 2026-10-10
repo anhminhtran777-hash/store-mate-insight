@@ -46,7 +46,7 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState(demoProfiles.Manager);
   const [role, setRole] = useState<Role>("Manager");
   const [storeName, setStoreName] = useState("Corner Market");
-  const [pinned, setPinned] = useState(true);
+  const [pinned, setPinned] = useState(false);
   const [budget, setBudget] = useState(1500);
   const [notificationStatus, setNotificationStatus] = useState<Record<string, "read" | "dismissed">>({});
   return (
