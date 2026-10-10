@@ -169,6 +169,8 @@ export const initialState: StoreState = {
 export const money = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 export const isLowStock = (p: Product) => !p.archived && p.stock <= p.threshold;
+export const restockQuantity = (p: Product) =>
+  Math.max(p.threshold * 2 - p.stock, p.threshold);
 export const trendColor = (before: number, after: number) =>
   after < before ? "var(--destructive)" : "var(--primary)";
 export function changeStock(

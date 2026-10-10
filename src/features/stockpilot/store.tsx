@@ -18,6 +18,8 @@ type DemoContext = {
   setStoreName: (n: string) => void;
   pinned: boolean;
   setPinned: (b: boolean) => void;
+  budget: number;
+  setBudget: (n: number) => void;
 };
 const Context = createContext<DemoContext | null>(null);
 export function StockPilotProvider({ children }: { children: ReactNode }) {
