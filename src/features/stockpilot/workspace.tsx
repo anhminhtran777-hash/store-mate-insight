@@ -1,3 +1,4 @@
+import { ExtraSettings, extraTabs, type ExtraTab } from "./settings-extra";
 import { useState, type FormEvent } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
@@ -1329,15 +1330,18 @@ function StoreSettings({ initialTab = "profile" }: { initialTab?: "profile" | "a
     useStockPilot();
   const manager = role === "Manager";
   const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<"profile" | "appearance">(initialTab);
+  const [tab, setTab] = useState<"profile" | "appearance" | ExtraTab>(initialTab);
   return (
     <section className="settings-section">
-      <div className="settings-tabs" role="tablist" aria-label="Settings">
-        <Button id="profile-tab" role="tab" aria-selected={tab === "profile"} aria-controls="settings-panel" variant="ghost" onClick={() => setTab("profile")}>Store profile</Button>
+      <div className="settings-tabs flex-wrap" role="tablist" aria-label="Settings">
+        <Button id="profile-tab" role="tab" aria-selected={tab === "profile"} aria-controls="settings-panel" variant="ghost" onClick={() => setTab("profile")}>{manager ? "Store profile" : "General"}</Button>
+        {extraTabs.filter((t) => manager || !t.managerOnly).map((t) => (
+          <Button key={t.id} id={`${t.id}-tab`} role="tab" aria-selected={tab === t.id} aria-controls="settings-panel" variant="ghost" onClick={() => setTab(t.id)}>{t.label}</Button>
+        ))}
         <Button id="appearance-tab" role="tab" aria-selected={tab === "appearance"} aria-controls="settings-panel" variant="ghost" onClick={() => setTab("appearance")}>Appearance</Button>
       </div>
       <div id="settings-panel" role="tabpanel" aria-labelledby={`${tab}-tab`}>
-      {tab === "appearance" ? <AppearanceSettings /> : <>
+      {tab === "appearance" ? <AppearanceSettings /> : tab !== "profile" ? <ExtraSettings key={tab} tab={tab} /> : <>
       <h2>{manager ? "Store profile" : "Your settings"}</h2>
       <form
         className="product-form"
