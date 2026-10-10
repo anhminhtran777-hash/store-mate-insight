@@ -1667,7 +1667,7 @@
 .request-dialog .product-form > .search-input,
 .request-dialog .product-form > .order-total,
 .request-dialog .product-form > p,
-.request-dialog .product-form > div {
+.request-dialog .product-form > div:not(.request-table) {
   flex-shrink: 0;
 }
 .request-table {
