@@ -77,8 +77,15 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   );
 }
 
-export function DocumentDialog({ doc, close }: { doc: StoreDocument | null; close: () => void }) {
-  const { setState } = useStockPilot();
+export function DocumentDialog({
+  doc: initial,
+  close,
+}: {
+  doc: StoreDocument | null;
+  close: () => void;
+}) {
+  const { state, setState } = useStockPilot();
+  const doc = state.documents.find((d) => d.id === initial?.id) ?? initial;
   const [email, setEmail] = useState("");
   const send = () => {
     if (!doc || !/^\S+@\S+\.\S+$/.test(email)) return;

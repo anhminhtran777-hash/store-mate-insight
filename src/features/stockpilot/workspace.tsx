@@ -62,13 +62,16 @@ import {
 } from "./model";
 import { ProductCharts } from "./charts";
 import { Assistant } from "./assistant";
+import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
 import cola from "@/assets/cola.jpg";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", to: "/", icon: Package },
+  { name: "Cashier", to: "/cashier", icon: Calculator },
   { name: "AI Assistant", to: "/assistant", icon: Bot },
   { name: "Purchase Orders", to: "/orders", icon: ShoppingCart },
+  { name: "Documents", to: "/documents", icon: FileText },
   { name: "Activity Log", to: "/activity", icon: History },
   { name: "Settings", to: "/settings", icon: Settings },
 ] as const;
@@ -234,7 +237,11 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                   ? "Keep your shelves stocked. Keep your business moving."
                   : page === "Dashboard"
                     ? "A clear picture of what’s happening in your store."
-                    : page === "Purchase Orders"
+                    : page === "Cashier"
+                      ? "Ring up sales fast — the numpad does it all."
+                      : page === "Documents"
+                        ? "Receipts and supplier paperwork, all in one place."
+                        : page === "Purchase Orders"
                       ? "From a smarter reorder to a well-stocked shelf."
                       : page === "Activity Log"
                         ? "Every change, with a clear trail."
@@ -394,6 +401,8 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
           {page === "Dashboard" && <Dashboard />}
           {page === "AI Assistant" && <Assistant />}
           {page === "Purchase Orders" && <Orders />}
+          {page === "Cashier" && <Cashier />}
+          {page === "Documents" && <Documents />}
           {page === "Activity Log" && <ActivityTable />}
           {page === "Settings" && <StoreSettings />}
           <footer className="page-footer">
