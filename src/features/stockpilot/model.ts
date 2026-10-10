@@ -32,6 +32,7 @@ export type Activity = {
   before?: number | undefined;
   after?: number | undefined;
   amount?: number | undefined;
+  flow?: "in" | "out" | undefined;
   time: string;
 };
 export type Order = {
@@ -215,7 +216,8 @@ export function changeStock(
         action: mode === "receive" ? "Stock received" : "Stock sold",
         before: p.stock,
         after: stock,
-        amount: mode === "receive" ? quantity * p.cost : undefined,
+        amount: mode === "receive" ? quantity * p.cost : quantity * p.price,
+        flow: mode === "receive" ? "out" : "in",
         time,
       },
       ...state.activities,
@@ -241,7 +243,15 @@ export function approveOrder(
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
     activities: [
-      { id: `${time}-${id}`, product: id, actor, action: "Purchase order approved", amount, time },
+      {
+        id: `${time}-${id}`,
+        product: id,
+        actor,
+        action: "Purchase order approved",
+        amount,
+        flow: "out",
+        time,
+      },
       ...state.activities,
     ],
   };
@@ -269,6 +279,7 @@ export function receiveOrder(
         actor,
         action: "Purchase order received",
         amount,
+        flow: "out",
         time,
       },
       ...updated.activities,

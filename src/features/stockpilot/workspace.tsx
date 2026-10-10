@@ -34,6 +34,7 @@ import {
   SprayCan,
   PackagePlus,
   Wallet,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -91,6 +92,9 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
   const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
   const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
   const budgetLeft = budget - committed;
+  const revenue = state.activities
+    .filter((a) => a.flow === "in")
+    .reduce((n, a) => n + (a.amount ?? 0), 0);
   const [hover, setHover] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
@@ -270,6 +274,13 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
                 note={`${money(committed)} committed of ${money(budget)}`}
                 trend={budgetLeft < 0 ? "Over budget" : "Left to spend this month"}
                 warning={budgetLeft < 0}
+              />
+              <Metric
+                title="Revenue"
+                value={money(revenue)}
+                icon={<TrendingUp />}
+                note="From sold stock"
+                trend="Sales this session"
               />
               <Metric
                 title="Low-stock items"
@@ -991,7 +1002,7 @@ function ActivityTable() {
                <th>PRODUCT / ORDER</th>
                <th>ACTIVITY</th>
                <th>STOCK CHANGE</th>
-               <th>SPENT</th>
+               <th>AMOUNT</th>
               <th>CHANGED BY</th>
               <th>DATE & TIME</th>
             </tr>
@@ -1020,7 +1031,16 @@ function ActivityTable() {
                        "—"
                      )}
                    </td>
-                   <td>{a.amount !== undefined ? money(a.amount) : "—"}</td>
+                    <td>
+                      {a.amount !== undefined ? (
+                        <span className={a.flow === "in" ? "positive" : "negative"}>
+                          {a.flow === "in" ? "+" : "−"}
+                          {money(a.amount)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                   <td>
                     <span className="table-person">
                       <span className="avatar small">
