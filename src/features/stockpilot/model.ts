@@ -182,7 +182,7 @@ export const isLowStock = (p: Product) => !p.archived && p.stock <= p.threshold;
 export const restockQuantity = (p: Product) =>
   Math.max(p.threshold * 2 - p.stock, p.threshold);
 export const trendColor = (before: number, after: number) =>
-  after < before ? "var(--destructive)" : "var(--primary)";
+  after < before ? "var(--chart-down)" : "var(--primary)";
 export function changeStock(
   state: StoreState,
   id: string,

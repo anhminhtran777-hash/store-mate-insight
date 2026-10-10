@@ -144,7 +144,7 @@ function TrendChart({
                     rx={Math.min(2, barWidth / 2)}
                     fill={
                       previous && point.sold < previous.sold
-                        ? "var(--destructive)"
+                        ? "var(--chart-down)"
                         : "var(--chart-sold)"
                     }
                   />

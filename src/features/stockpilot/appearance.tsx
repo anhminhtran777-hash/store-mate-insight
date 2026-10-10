@@ -8,7 +8,7 @@ export const themes = [
   { id: "daylight", name: "Daylight", description: "Cool white · ocean blue", dark: false },
   { id: "midnight", name: "Midnight", description: "Deep navy · ice blue", dark: true },
   { id: "ember", name: "Ember", description: "Warm charcoal · amber", dark: true },
-  { id: "orchid", name: "Orchid", description: "Soft violet · lavender", dark: false },
+  { id: "orchid", name: "Orchid", description: "Deep violet · lavender", dark: true },
   { id: "harvest", name: "Harvest", description: "Warm cream · terracotta", dark: false },
 ] as const;
 type Theme = (typeof themes)[number]["id"];

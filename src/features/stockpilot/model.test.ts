@@ -46,8 +46,8 @@ describe("StockPilot inventory demo", () => {
   it("draft orders cannot be received before approval", () => {
     expect(receiveOrder(initialState, "PO-1042", "Alex Morgan", time)).toBe(initialState);
   });
-  it("downward chart segments use the red destructive token", () => {
-    expect(trendColor(82, 68)).toBe("var(--destructive)");
+  it("downward chart segments use the strong red chart-down token", () => {
+    expect(trendColor(82, 68)).toBe("var(--chart-down)");
     expect(trendColor(36, 62)).toBe("var(--primary)");
   });
   it("low stock excludes archived products and follows product reorder point", () => {
