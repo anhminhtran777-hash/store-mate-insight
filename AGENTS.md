@@ -19,3 +19,4 @@
 - Signal good/bad with the dedicated up/down color tokens rather than the theme accent, so positive and negative readings stay green and red in every theme.
 - Render document previews and printouts from the same DocumentSheet with separate receipt and supplier layouts; show only recorded information so print and archive views stay consistent without fabricating invoice details.
 - Keep supplier confirmation separate from order approval and stock receipt; receipt requires supplier invoice and delivery note and links their immutable document identities to a goods receipt, preventing paperwork from changing stock or charging twice.
+- Keep researched supplier catalogue entries and their source references in a browser-safe data module; append stable demo identities without replacing existing products or inventing historical stock.
