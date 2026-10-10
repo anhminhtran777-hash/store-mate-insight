@@ -1649,8 +1649,8 @@
 }
 /* Purchase request window: bounded to the viewport, only the item list scrolls. */
 .request-dialog {
-  width: min(520px, calc(100vw - 28px));
-  max-width: min(520px, calc(100vw - 28px));
+  width: min(680px, calc(100vw - 28px));
+  max-width: min(680px, calc(100vw - 28px));
   max-height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
