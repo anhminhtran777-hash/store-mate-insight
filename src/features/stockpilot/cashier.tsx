@@ -211,6 +211,7 @@ export function Cashier() {
   const [refundOpen, setRefundOpen] = useState(false);
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
+  const groups = useMemo(() => groupByBarcode(allProducts), [allProducts]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
@@ -228,6 +229,14 @@ export function Cashier() {
         : [...c, { productId: id, quantity: n }],
     );
     setMessage(`Added ${n} × ${p.name}`);
+  };
+  /** Adds from a barcode group: sells from the first stack in the group that has enough left. */
+  const addGroup = (g: BarcodeGroup, n: number) => {
+    const target = g.items.find(
+      (p) => p.stock - (cart.find((c) => c.productId === p.id)?.quantity ?? 0) >= n,
+    );
+    if (!target) return setMessage(`Only ${g.stock} ${g.name} in stock.`);
+    add(target.id, n);
   };
   const pay = (method: "Cash" | "Card", paid?: number) => {
     if (!cart.length) return setMessage("The sale is empty.");
