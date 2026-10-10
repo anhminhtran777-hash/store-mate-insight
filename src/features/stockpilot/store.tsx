@@ -3,12 +3,13 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   type ReactNode,
   type Dispatch,
   type SetStateAction,
   type Context as ReactContext,
 } from "react";
-import { usePref, getCurrentAccount, onPrefsChange } from "./accounts";
+import { usePref, getCurrentAccount, onPrefsChange, loadStockState, saveStockState } from "./accounts";
 import { initialState, demoProducts, demoProfiles, type StoreState, type Role } from "./model";
 type DemoContext = {
   state: StoreState;
@@ -34,7 +35,23 @@ const globalStore = globalThis as unknown as Record<string, ReactContext<DemoCon
 const Context: ReactContext<DemoContext | null> =
   globalStore[globalKey] ?? (globalStore[globalKey] = createContext<DemoContext | null>(null));
 export function StockPilotProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState(initialState);
+  // Inventory state persists per signed-in account in browser storage.
+  const [accountUser, setAccountUser] = useState<string | null>(() => getCurrentAccount()?.username ?? null);
+  const [state, setState] = useState<StoreState>(() => {
+    const u = getCurrentAccount()?.username;
+    return (u && loadStockState<StoreState>(u)) || initialState;
+  });
+  const loadedFor = useRef<string | null>(getCurrentAccount()?.username ?? null);
+  useEffect(() => onPrefsChange(() => setAccountUser(getCurrentAccount()?.username ?? null)), []);
+  // Signing into another account swaps in that account's saved stock.
+  useEffect(() => {
+    if (accountUser === loadedFor.current) return;
+    loadedFor.current = accountUser;
+    setState((accountUser && loadStockState<StoreState>(accountUser)) || initialState);
+  }, [accountUser]);
+  useEffect(() => {
+    if (accountUser) saveStockState(accountUser, state);
+  }, [accountUser, state]);
   // Catalogue updates also reach an already-open demo without resetting its transactions.
   useEffect(() => {
     setState((current) => {
