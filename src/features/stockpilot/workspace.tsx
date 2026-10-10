@@ -180,7 +180,7 @@ export function Workspace({ page = "Inventory", settingsTab }: { page?: string; 
               <span>{role === "Manager" ? "Store manager" : "Store staff"}</span>
             </div>
             <Button asChild variant="nav-icon" size="icon" title="Sign out">
-              <Link to="/login">
+              <Link to="/login" onClick={() => setCurrentAccount(null)}>
                 <LogOut />
               </Link>
             </Button>
