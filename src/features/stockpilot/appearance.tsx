@@ -19,9 +19,10 @@ const AppearanceContext = (appearanceStore.__stockpilotAppearance__ ??= createCo
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("forest");
+  const themeConfig = themes.find((t) => t.id === theme) ?? themes[0];
   useEffect(() => {
     document.documentElement.dataset["theme"] = theme;
-    document.documentElement.classList.toggle("dark", theme.dark);
+    document.documentElement.classList.toggle("dark", themeConfig?.dark ?? false);
     return () => {
       delete document.documentElement.dataset["theme"];
       document.documentElement.classList.remove("dark");
