@@ -222,6 +222,12 @@ export function changeStock(
     ],
   };
 }
+export function orderCost(state: StoreState, order: Order): number {
+  return order.lines.reduce(
+    (n, l) => n + l.quantity * (state.products.find((p) => p.id === l.productId)?.cost || 0),
+    0,
+  );
+}
 export function approveOrder(
   state: StoreState,
   id: string,
@@ -252,8 +258,20 @@ export function receiveOrder(
     (s, line) => changeStock(s, line.productId, line.quantity, "receive", actor, time),
     state,
   );
+  const amount = orderCost(state, order);
   return {
     ...updated,
     orders: updated.orders.map((o) => (o.id === id ? { ...o, status: "Received" } : o)),
+    activities: [
+      {
+        id: `${time}-${id}-received`,
+        product: id,
+        actor,
+        action: "Purchase order received",
+        amount,
+        time,
+      },
+      ...updated.activities,
+    ],
   };
 }
