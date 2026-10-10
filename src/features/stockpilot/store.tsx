@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type Dispatch,
   type SetStateAction,
+  type Context as ReactContext,
 } from "react";
 import { initialState, type StoreState } from "./model";
 type DemoContext = {
@@ -23,8 +24,8 @@ type DemoContext = {
 };
 // Keep one context instance across hot reloads so provider and consumers always match.
 const globalKey = "__stockpilotContext__";
-const globalStore = globalThis as unknown as Record<string, React.Context<DemoContext | null> | undefined>;
-const Context: React.Context<DemoContext | null> =
+const globalStore = globalThis as unknown as Record<string, ReactContext<DemoContext | null> | undefined>;
+const Context: ReactContext<DemoContext | null> =
   globalStore[globalKey] ?? (globalStore[globalKey] = createContext<DemoContext | null>(null));
 export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(initialState);
