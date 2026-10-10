@@ -1,3 +1,4 @@
+import { ExtraSettings, extraTabs, type ExtraTab } from "./settings-extra";
 import { useState, type FormEvent } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
