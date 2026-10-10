@@ -14,37 +14,75 @@ function printDocument() {
   };
   window.addEventListener("afterprint", done);
   window.print();
-  setTimeout(done, 1000);
 }
 
 export function DocumentSheet({ doc }: { doc: StoreDocument }) {
-  const { storeName } = useStockPilot();
+  const { storeName, state } = useStockPilot();
   const receipt = doc.kind === "Receipt";
-  return (
-    <div className={`doc-sheet ${receipt ? "doc-receipt" : ""}`}>
-      <header>
-        <strong>{receipt ? storeName : doc.kind.toUpperCase()}</strong>
-        <span>
-          {receipt ? "Sales receipt" : `${doc.party}`} · {doc.reference}
-        </span>
-        <span>
-          {new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} ·{" "}
-          {doc.actor}
-        </span>
-        {!receipt && <span>Bill to: {storeName}</span>}
+  const delivery = doc.kind === "Delivery note";
+  const order = state.orders.find((o) => o.id === doc.reference);
+  const date = new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  const units = doc.lines.reduce((n, line) => n + line.quantity, 0);
+  if (receipt) return (
+    <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
+      <header className="receipt-heading">
+        <strong>{storeName}</strong>
+        <span>SALES RECEIPT</span>
+        <span>{date}</span>
       </header>
+      <dl className="receipt-details">
+        <div><dt>Receipt</dt><dd>{doc.reference}</dd></div>
+        <div><dt>Cashier</dt><dd>{doc.actor}</dd></div>
+        <div><dt>Customer</dt><dd>{doc.party}</dd></div>
+      </dl>
+      <div className="receipt-items">
+        {doc.lines.map((line, i) => (
+          <div className="receipt-item" key={i}>
+            <strong>{line.name}</strong>
+            <div><span>{line.quantity} × {money(line.unit)}</span><span>{money(line.quantity * line.unit)}</span></div>
+          </div>
+        ))}
+      </div>
+      <footer className="receipt-footer">
+        <div><span>{units} items</span><span>{money(doc.total)}</span></div>
+        <div className="receipt-total"><strong>TOTAL</strong><strong>{money(doc.total)}</strong></div>
+        <div><span>{doc.method ?? "Payment"}</span><span>{money(doc.paid ?? doc.total)}</span></div>
+        <div><span>Change</span><span>{money(Math.max(0, (doc.paid ?? doc.total) - doc.total))}</span></div>
+        <p>PAYMENT COMPLETE</p>
+        <p>Thank you for shopping<br />at {storeName}!</p>
+        <span className="receipt-reference">{doc.reference} · Keep for your records</span>
+      </footer>
+    </article>
+  );
+  return (
+    <article className="doc-sheet doc-business" aria-label={doc.kind}>
+      <header className="business-heading">
+        <div><span className="doc-label">{delivery ? "SUPPLIER DELIVERY RECORD" : "PROCUREMENT"}</span><strong>{doc.kind}</strong><span>{storeName}</span></div>
+        <div className="business-reference"><strong>{delivery ? `DN-${doc.reference.replace(/^PO-/, "")}` : doc.reference}</strong><span>{delivery ? "Received in full" : "Approved order"}</span></div>
+      </header>
+      <section className="doc-parties">
+        <div><span className="doc-label">{delivery ? "Delivered by" : "Supplier / order to"}</span><strong>{doc.party}</strong><span>Supplier for this order</span></div>
+        <div><span className="doc-label">{delivery ? "Received at" : "Buyer / deliver to"}</span><strong>{storeName}</strong><span>{delivery ? `Received by ${doc.actor}` : `Prepared by ${doc.actor}`}</span></div>
+      </section>
+      <dl className="business-details">
+        <div><dt>{delivery ? "Received on" : "Approved on"}</dt><dd>{date}</dd></div>
+        <div><dt>Purchase order</dt><dd>{doc.reference}</dd></div>
+        <div><dt>Order created</dt><dd>{order ? new Date(`${order.date}T12:00:00`).toLocaleDateString("en-US", { dateStyle: "medium" }) : "Not recorded"}</dd></div>
+        <div><dt>{delivery ? "Receiving officer" : "Authorized by"}</dt><dd>{doc.actor}</dd></div>
+      </dl>
       <table>
+        <caption>{delivery ? "Goods received" : "Items ordered"}</caption>
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>{receipt ? "Price" : "Unit cost"}</th>
-            <th>Total</th>
+            <th>No.</th><th>Item / description</th>
+            <th>{delivery ? "Received qty" : "Order qty"}</th>
+            <th>Unit cost</th><th>Amount</th>
           </tr>
         </thead>
         <tbody>
           {doc.lines.map((l, i) => (
             <tr key={i}>
+              <td>{String(i + 1).padStart(2, "0")}</td>
               <td>{l.name}</td>
               <td>{l.quantity}</td>
               <td>{money(l.unit)}</td>
@@ -53,27 +91,20 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
           ))}
         </tbody>
       </table>
-      <footer>
-        <div>
-          <span>Total</span>
-          <strong>{money(doc.total)}</strong>
-        </div>
-        {receipt && (
-          <>
-            <div>
-              <span>Paid ({doc.method})</span>
-              <span>{money(doc.paid ?? doc.total)}</span>
-            </div>
-            <div>
-              <span>Change</span>
-              <span>{money(Math.max(0, (doc.paid ?? doc.total) - doc.total))}</span>
-            </div>
-            <p>Thank you for shopping with us!</p>
-          </>
-        )}
-        {doc.kind === "Delivery note" && <p>Goods received in full and added to stock.</p>}
+      <section className="business-summary">
+        <div><span className="doc-label">Order summary</span><p>{doc.lines.length} product lines · {units} units</p><p>{delivery ? "Goods received in full and added to inventory." : "Approved for purchase from the supplier listed above."}</p></div>
+        <dl><div><dt>Line total</dt><dd>{money(doc.total)}</dd></div><div className="business-total"><dt>{delivery ? "Received value" : "Order total"}</dt><dd>{money(doc.total)}</dd></div></dl>
+      </section>
+      <section className="business-notes">
+        <span className="doc-label">{delivery ? "Receiving record" : "Order notes"}</span>
+        <p>{delivery ? `Receipt recorded by ${doc.actor} on ${date}. Quantities above reflect the units added to stock.` : `Please reference ${doc.reference} on related deliveries and supplier correspondence.`}</p>
+        <p>Tax, delivery charges and payment terms are not recorded. This document is not a tax invoice.</p>
+      </section>
+      <footer className="business-footer">
+        <div><span>{delivery ? "Received by" : "Approved by"}</span><strong>{doc.actor}</strong></div>
+        <div><span>Document reference</span><strong>{delivery ? "DN · " : ""}{doc.reference}</strong></div>
       </footer>
-    </div>
+    </article>
   );
 }
 
@@ -96,12 +127,12 @@ export function DocumentDialog({
   };
   return (
     <Dialog open={!!doc} onOpenChange={(o) => !o && close()}>
-      <DialogContent className="doc-dialog">
+      <DialogContent className={`doc-dialog ${doc?.kind === "Receipt" ? "doc-dialog-receipt" : "doc-dialog-business"}`}>
         <DialogHeader>
           <DialogTitle>{doc?.kind}</DialogTitle>
           <DialogDescription>{doc?.reference}</DialogDescription>
         </DialogHeader>
-        {doc && <DocumentSheet doc={doc} />}
+        {doc && <div className="doc-preview"><DocumentSheet doc={doc} /></div>}
         {doc && (
           <div className="doc-actions">
             <Button onClick={printDocument}>
