@@ -21,6 +21,8 @@ export type Product = {
   supplier: string;
   sku: string;
   barcode: string;
+  /** Extra scan codes that also belong to this product (a product is not limited to one barcode). */
+  barcodes?: string[] | undefined;
   emoji: string;
   archived?: boolean;
   history: number[];
@@ -121,6 +123,8 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   emoji: r[8],
   sku: `SP-${String(1001 + i)}`,
   barcode: ean13(`500123${String(100000 + i * 7919).slice(-6)}`),
+  // Coca-Cola Original also scans under its manufacturer barcode.
+  barcodes: i === 0 ? ["5449000000996"] : undefined,
   history:
     i === 0
       ? [36, 62, 54, 82, 68, 48]
@@ -399,10 +403,52 @@ export function confirmSupplier(state: StoreState, id: string, kind: "Invoice" |
   return { ...state, documents: [...docs, ...(state.documents ?? [])], activities: [{ id: `${time}-${id}-confirmation`, product: id, actor, action: "Supplier confirmation recorded", time }, ...state.activities] };
 }
 export type CartLine = { productId: string; quantity: number };
+/** Every scan code that belongs to a product: its main barcode plus any extras. */
+export function productBarcodes(p: Product): string[] {
+  return [p.barcode, ...(p.barcodes ?? [])];
+}
+export type BarcodeGroup = {
+  barcode: string;
+  items: Product[];
+  stock: number;
+  price: number;
+  name: string;
+  size: string;
+  emoji: string;
+  category: Category;
+};
+/**
+ * Groups products by barcode: every ordered stack keeps one barcode, and
+ * products sharing a barcode are displayed together with their quantities
+ * summed. A product with several barcodes is filed under its main one; the
+ * extras still find it when scanned.
+ */
+export function groupByBarcode(products: Product[]): BarcodeGroup[] {
+  const groups = new Map<string, Product[]>();
+  for (const p of products) {
+    const list = groups.get(p.barcode) ?? [];
+    list.push(p);
+    groups.set(p.barcode, list);
+  }
+  return [...groups.entries()].map(([barcode, items]) => {
+    const first = items[0]!;
+    return {
+      barcode,
+      items,
+      stock: items.reduce((n, p) => n + p.stock, 0),
+      price: first.price,
+      name: items.map((i) => i.name).join(" / "),
+      size: [...new Set(items.map((i) => i.size))].join(" / "),
+      emoji: first.emoji,
+      category: first.category,
+    };
+  });
+}
 /**
  * Finds one sellable product from whatever the cashier typed: item code
- * (1–3 digits), full barcode, SKU, exact name, or a unique name/SKU/barcode
- * substring. Returns "many" when the text matches several products.
+ * (1–3 digits), full barcode (main or extra), SKU, exact name, or a unique
+ * name/SKU/barcode substring. Returns "many" when the text matches several
+ * products.
  */
 export function findCashierItem(products: Product[], raw: string): Product | "many" | undefined {
   const query = raw.trim();
@@ -414,7 +460,7 @@ export function findCashierItem(products: Product[], raw: string): Product | "ma
   }
   const exact = products.find(
     (p) =>
-      p.barcode === query ||
+      productBarcodes(p).includes(query) ||
       p.sku.toLowerCase() === lower ||
       p.name.toLowerCase() === lower ||
       `${p.name} ${p.size}`.toLowerCase() === lower,
@@ -425,7 +471,7 @@ export function findCashierItem(products: Product[], raw: string): Product | "ma
       p.name.toLowerCase().includes(lower) ||
       `${p.name} ${p.size}`.toLowerCase().includes(lower) ||
       p.sku.toLowerCase().includes(lower) ||
-      (p.barcode ?? "").includes(query),
+      productBarcodes(p).some((b) => b.includes(query)),
   );
   if (fuzzy.length === 1) return fuzzy[0];
   return fuzzy.length > 1 ? "many" : undefined;

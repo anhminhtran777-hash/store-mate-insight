@@ -3,7 +3,7 @@ import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
-import { checkout, findCashierItem, money, type CartLine, type StoreDocument } from "./model";
+import { checkout, findCashierItem, groupByBarcode, money, type BarcodeGroup, type CartLine, type StoreDocument } from "./model";
 import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
 
@@ -211,6 +211,7 @@ export function Cashier() {
   const [refundOpen, setRefundOpen] = useState(false);
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
+  const groups = useMemo(() => groupByBarcode(allProducts), [allProducts]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
@@ -228,6 +229,14 @@ export function Cashier() {
         : [...c, { productId: id, quantity: n }],
     );
     setMessage(`Added ${n} × ${p.name}`);
+  };
+  /** Adds from a barcode group: sells from the first stack in the group that has enough left. */
+  const addGroup = (g: BarcodeGroup, n: number) => {
+    const target = g.items.find(
+      (p) => p.stock - (cart.find((c) => c.productId === p.id)?.quantity ?? 0) >= n,
+    );
+    if (!target) return setMessage(`Only ${g.stock} ${g.name} in stock.`);
+    add(target.id, n);
   };
   const pay = (method: "Cash" | "Card", paid?: number) => {
     if (!cart.length) return setMessage("The sale is empty.");
@@ -269,7 +278,9 @@ export function Cashier() {
       const found = findCashierItem(allProducts, buffer);
       if (found === "many") return setMessage(`Several items match "${buffer}" — type more characters.`);
       if (!found) return setMessage(`No item matches "${buffer}".`);
-      add(found.id, qty);
+      const group = groups.find((g) => g.barcode === found.barcode);
+      if (group) addGroup(group, qty);
+      else add(found.id, qty);
       setQty(1);
       return;
     }
@@ -314,20 +325,21 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {allProducts.map((p) => (
+          {groups.map((g) => (
             <button
-              key={p.id}
-              className={`cashier-item category-${p.category.toLowerCase()}`}
-              disabled={p.stock === 0}
-              onClick={() => add(p.id, 1)}
+              key={g.barcode}
+              className={`cashier-item category-${g.category.toLowerCase()}`}
+              disabled={g.stock === 0}
+              onClick={() => addGroup(g, 1)}
             >
-              <span className="cashier-code">{code(p.id)}</span>
-              <span>{p.emoji}</span>
-               <strong>{p.name}</strong>
-               <small>{p.size}</small>
+              <span className="cashier-code">{code(g.items[0]?.id ?? "")}</span>
+              <span>{g.emoji}</span>
+               <strong>{g.name}</strong>
+               <small>{g.size}</small>
               <small>
-                {money(p.price)} · {p.stock} left
+                {money(g.price)} · {g.stock} left
               </small>
+              <small className="cashier-barcode">⌗ {g.barcode}</small>
             </button>
           ))}
         </div>

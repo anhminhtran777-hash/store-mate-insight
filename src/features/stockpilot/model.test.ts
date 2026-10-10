@@ -13,6 +13,7 @@ import {
   confirmSupplier,
   createPurchaseRequest,
   findCashierItem,
+  groupByBarcode,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("Bulgarian Coca-Cola supplier catalogue", () => {
@@ -65,6 +66,24 @@ describe("cashier numpad item lookup", () => {
     expect(findCashierItem(sellable, "zzz-nothing")).toBeUndefined();
     const archived = initialState.products.map((p) => (p.id === "p1" ? { ...p, archived: true } : p));
     expect(findCashierItem(archived.filter((p) => !p.archived), "Coca-Cola Original 330ml can")).toBeUndefined();
+  });
+  it("finds a product by any of its extra barcodes", () => {
+    expect(idOf("5449000000996")).toBe("p1");
+  });
+});
+describe("barcode grouping", () => {
+  it("merges stacks that share a barcode and sums their quantities", () => {
+    const [a, b] = initialState.products;
+    if (!a || !b) throw new Error("Missing demo products");
+    const twin = { ...b, barcode: a.barcode, stock: 7 };
+    const groups = groupByBarcode([a, twin]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.stock).toBe(a.stock + 7);
+    expect(groups[0]?.items.map((p) => p.id)).toEqual([a.id, twin.id]);
+  });
+  it("keeps products with distinct barcodes in separate groups", () => {
+    const groups = groupByBarcode(initialState.products);
+    expect(groups).toHaveLength(initialState.products.length);
   });
 });
 describe("manual purchase requests", () => {
