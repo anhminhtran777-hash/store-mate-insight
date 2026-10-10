@@ -10,4 +10,4 @@
 - [x] Add revenue stat and show sold-stock revenue in the activity log.
 - [x] Keep stat caption text fixed green/red in every theme.
 - [ ] Logo: on hold — the app name will change first.
-- [ ] Make receipts narrow and centered and supplier documents larger with complete available details; verify screen and print views.
+- [x] Make receipts narrow and centered and supplier documents larger with complete available details; verify screen and print views.
