@@ -26,8 +26,10 @@ describe("Bulgarian Coca-Cola supplier catalogue", () => {
     for (const brand of ["Fanta", "Sprite", "Schweppes", "Cappy", "Fuzetea", "Bankya", "Rosa", "Monster", "Powerade", "Three Cents", "Costa Coffee", "Caffè Vergnano", "Jack Daniel", "Finlandia", "Bacardi", "Martini", "Bombay Sapphire", "Grey Goose", "Patron", "Jägermeister", "The Macallan", "Highland Park", "Gin Mare"]) expect(products.some((p) => p.name.startsWith(brand))).toBe(true);
     expect(new Set(initialState.products.map((p) => p.id)).size).toBe(initialState.products.length);
     expect(new Set(initialState.products.map((p) => p.barcode)).size).toBe(initialState.products.length);
-    for (const p of products.filter((p) => p.id.startsWith("cch-bg-"))) {
-      expect(p.stock).toBe(0);
+    const catalogue = products.filter((p) => p.id.startsWith("cch-bg-"));
+    expect(catalogue.filter((p) => p.stock === 0).length).toBeLessThanOrEqual(12);
+    for (const p of catalogue) {
+      expect(p.stock === 0 || (p.stock >= 24 && p.stock <= 46)).toBe(true);
       expect(p.history).toEqual([0, 0, 0, 0, 0, 0]);
       expect(p.received).toEqual([0, 0, 0, 0, 0, 0]);
       expect(p.sold).toEqual([0, 0, 0, 0, 0, 0]);
@@ -292,6 +294,6 @@ describe("wholesale stack ordering", () => {
     s = approveOrder(s, order.id, "Alex Morgan", time);
     s = confirmSupplier(s, order.id, "Both", "Alex Morgan", time);
     s = receiveOrder(s, order.id, "Alex Morgan", time);
-    expect(s.products.find((p) => p.id === cola.id)!.stock).toBe(units);
+    expect(s.products.find((p) => p.id === cola.id)!.stock).toBe(cola.stock + units);
   });
 });

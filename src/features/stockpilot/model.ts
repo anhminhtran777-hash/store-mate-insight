@@ -153,14 +153,15 @@ export function catalogueCaseSize(size: string): number {
 export function stackUnits(product: Product, stacks: number): number {
   return Math.max(0, Math.round(stacks)) * (product.caseSize ?? 1);
 }
-// Catalogue-only packs start empty: requesting goods does not imply they are on the shelf.
+// Catalogue packs start stocked around 24–46 units; a handful stay empty so low-stock alerts and reordering can be demoed.
+const catalogueStock = (i: number): number => (i % 13 === 12 ? 0 : 24 + ((i * 7) % 23));
 export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCatalogue.map((entry, i): Product => ({
   id: `cch-bg-${entry.key}`,
   name: entry.name,
   size: entry.size,
   category: "Beverages",
   supplier: "Coca-Cola Distribution",
-  stock: 0,
+  stock: catalogueStock(i),
   threshold: 12,
   cost: entry.cost,
   price: Math.round(entry.cost * 1.8 * 100) / 100,
