@@ -52,6 +52,7 @@ import {
   changeStock,
   approveOrder,
   receiveOrder,
+  orderCost,
   type Product,
 } from "./model";
 import { ProductCharts } from "./charts";
