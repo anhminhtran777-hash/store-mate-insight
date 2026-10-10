@@ -687,3 +687,15 @@ export function refundSale(
     refund,
   };
 }
+
+/** Demo profiles: staff run the shop floor, managers get everything. */
+export type Role = "Manager" | "Staff";
+export const demoProfiles: Record<Role, string> = { Manager: "Demo Manager", Staff: "Demo Staff" };
+export const staffPages = ["Inventory", "Cashier", "Purchase Orders", "Settings"] as const;
+export type Permission = "manageProducts" | "adjustStock" | "approveOrders" | "storeSettings" | "viewFinance";
+export function canAccessPage(role: Role, page: string) {
+  return role === "Manager" || (staffPages as readonly string[]).includes(page);
+}
+export function can(role: Role, _permission: Permission) {
+  return role === "Manager";
+}
