@@ -1913,11 +1913,15 @@
   box-shadow: var(--shadow-floating);
   transform: rotate(-4deg);
 }
-.login-art-product img {
+.login-art-emoji {
+  display: grid;
+  place-items: center;
   width: 200px;
   height: 180px;
-  object-fit: cover;
+  font-size: 74px;
+  background: var(--muted);
 }
+
 .login-art-product > span {
   display: block;
   font-size: 12px;
