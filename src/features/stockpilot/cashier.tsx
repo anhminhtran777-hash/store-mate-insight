@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Printer, Mail, Trash2, FileText, Receipt, Truck } from "lucide-react";
+import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
