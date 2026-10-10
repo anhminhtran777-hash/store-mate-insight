@@ -347,7 +347,13 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {visibleGroups.length === 0 && <p className="muted">No items match "{buffer}".</p>}
+          {visibleGroups.length === 0 && (
+            <p className="muted">
+              {/^\d+$/.test(buffer.trim())
+                ? `No item code or barcode "${buffer}".`
+                : `No items match "${buffer}".`}
+            </p>
+          )}
           {visibleGroups.map((g) => (
             <button
               key={g.barcode}
