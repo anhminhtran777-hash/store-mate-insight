@@ -6,3 +6,7 @@
 - [x] Add styled daily charts with date-specific hover values and verify interactions.
 - [x] Add daily/weekly/monthly/yearly chart options and verify clear received-versus-sold grouping.
 - [x] Add Appearance settings with workspace-wide themes and verify switching across navigation.
+- [x] Add one-click restock plus purchase budget, and make budget reflect real spend.
+- [x] Add revenue stat and show sold-stock revenue in the activity log.
+- [x] Keep stat caption text fixed green/red in every theme.
+- [ ] Logo: on hold — the app name will change first.
