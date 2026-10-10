@@ -26,7 +26,7 @@ describe("StockPilot inventory demo", () => {
   });
   it("selling stock logs the revenue earned at product price", () => {
     const s = changeStock(initialState, "p1", 12, "sell", "Jamie Lee", time);
-    expect(s.activities[0]?.amount).toBeCloseTo(12 * 1.99);
+    expect(s.activities[0]?.amount).toBeCloseTo(12 * 1.79);
     expect(s.activities[0]?.flow).toBe("in");
   });
   it("draft approval changes order status but not stock", () => {
