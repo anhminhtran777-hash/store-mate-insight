@@ -85,13 +85,13 @@ export function DocumentDialog({
   close: () => void;
 }) {
   const { state, setState } = useStockPilot();
-  const doc = state.documents.find((d) => d.id === initial?.id) ?? initial;
+  const doc = (state.documents ?? []).find((d) => d.id === initial?.id) ?? initial;
   const [email, setEmail] = useState("");
   const send = () => {
     if (!doc || !/^\S+@\S+\.\S+$/.test(email)) return;
     setState((s) => ({
       ...s,
-      documents: s.documents.map((d) => (d.id === doc.id ? { ...d, sentTo: email } : d)),
+      documents: (s.documents ?? []).map((d) => (d.id === doc.id ? { ...d, sentTo: email } : d)),
     }));
   };
   return (
@@ -346,7 +346,7 @@ export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
   const [open, setOpen] = useState<StoreDocument | null>(null);
-  const docs = state.documents.filter((d) => filter === "All" || d.kind === filter);
+  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter);
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">

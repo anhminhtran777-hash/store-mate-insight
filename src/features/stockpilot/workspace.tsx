@@ -519,11 +519,11 @@ function ProductDetail({
           </p>
           <p className="barcode-line" aria-label={`Barcode ${p.barcode}`}>
             <span className="barcode-bars" aria-hidden="true">
-              {[...p.barcode].map((c, i) => (
+              {[...(p.barcode ?? "")].map((c, i) => (
                 <i key={i} style={{ width: `${(Number(c) % 3) + 1}px` }} />
               ))}
             </span>
-            <code>{p.barcode}</code>
+            <code>{p.barcode ?? "—"}</code>
           </p>
           <div className="detail-actions">
             <Button variant="outline" size="sm" onClick={() => open("edit")}>

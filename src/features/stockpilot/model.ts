@@ -360,7 +360,7 @@ export function checkout(
     paid: method === "Cash" ? paid : total,
     method,
   };
-  return { state: { ...sold, documents: [receipt, ...sold.documents] }, receipt };
+  return { state: { ...sold, documents: [receipt, ...(sold.documents ?? [])] }, receipt };
 }
 export function approveOrder(
   state: StoreState,
@@ -374,7 +374,7 @@ export function approveOrder(
   return {
     ...state,
     orders: state.orders.map((o) => (o.id === id ? { ...o, status: "Approved" } : o)),
-    documents: [orderDocument(state, order, "Purchase order", actor, time), ...state.documents],
+    documents: [orderDocument(state, order, "Purchase order", actor, time), ...(state.documents ?? [])],
     activities: [
       {
         id: `${time}-${id}`,
@@ -405,7 +405,7 @@ export function receiveOrder(
   return {
     ...updated,
     orders: updated.orders.map((o) => (o.id === id ? { ...o, status: "Received" } : o)),
-    documents: [orderDocument(state, order, "Delivery note", actor, time), ...updated.documents],
+    documents: [orderDocument(state, order, "Delivery note", actor, time), ...(updated.documents ?? [])],
     activities: [
       {
         id: `${time}-${id}-received`,
