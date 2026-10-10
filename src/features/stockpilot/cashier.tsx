@@ -446,13 +446,13 @@ export function Cashier() {
   );
 }
 
-const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator };
+const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator, "Credit memo": Undo2 };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
   const [open, setOpen] = useState<StoreDocument | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter);
+  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter || (filter === "Accounting invoice" && d.kind === "Credit memo"));
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
@@ -471,8 +471,11 @@ export function Documents() {
       </div>
       {filter === "Accounting invoice" && (
         <div className="flex justify-between items-center gap-2 py-3">
-          <p className="text-sm text-muted-foreground">Invoices for accounting only — rent, utilities, services. They never change stock.</p>
-          <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> Record accounting invoice</Button>
+          <p className="text-sm text-muted-foreground">Invoices and credit memos for accounting only — rent, utilities, services. They never change stock.</p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setMemoOpen(true)}><Plus /> Record credit memo</Button>
+            <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> Record accounting invoice</Button>
+          </div>
         </div>
       )}
       {!docs.length ? (
