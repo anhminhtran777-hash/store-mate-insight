@@ -32,6 +32,7 @@ export type Activity = {
   before?: number | undefined;
   after?: number | undefined;
   amount?: number | undefined;
+  flow?: "in" | "out" | undefined;
   time: string;
 };
 export type Order = {
@@ -215,7 +216,8 @@ export function changeStock(
         action: mode === "receive" ? "Stock received" : "Stock sold",
         before: p.stock,
         after: stock,
-        amount: mode === "receive" ? quantity * p.cost : undefined,
+        amount: mode === "receive" ? quantity * p.cost : quantity * p.price,
+        flow: mode === "receive" ? "out" : "in",
         time,
       },
       ...state.activities,
