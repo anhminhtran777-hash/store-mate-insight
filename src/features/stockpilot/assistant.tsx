@@ -14,15 +14,15 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
-import { useStockPilot } from "./store";
+import { useStock Genie } from "./store";
 import { isLowStock, money } from "./model";
 type ChatMessage = { role: "user" | "assistant"; text: string };
 export function Assistant() {
-  const { state, setState, user } = useStockPilot();
+  const { state, setState, user } = useStock Genie();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi Alex, I’m your StockPilot assistant. I’ve reviewed your inventory. Ask me about stock trends, products to reorder, or your inventory value.",
+      text: "Hi Alex, I’m your Stock Genie assistant. I’ve reviewed your inventory. Ask me about stock trends, products to reorder, or your inventory value.",
     },
   ]);
   const [busy, setBusy] = useState(false);
@@ -109,7 +109,7 @@ export function Assistant() {
         </div>
         <h2>A little clarity for your shelves.</h2>
         <p>
-          StockPilot Assistant <span className="demo-label">Simulated AI</span>
+          Stock Genie Assistant <span className="demo-label">Simulated AI</span>
         </p>
       </div>
       <div className="chat-wrap">

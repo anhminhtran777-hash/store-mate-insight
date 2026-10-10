@@ -113,7 +113,7 @@ describe("manual purchase requests", () => {
     for (const doc of received.documents.filter((d) => d.reference === "PO-1043")) expect(doc.lines.map((l) => l.quantity)).toEqual([12, 6]);
   });
 });
-describe("StockPilot inventory demo", () => {
+describe("Stock Genie inventory demo", () => {
   it("receiving stock updates quantity, October history, receipts and who changed it", () => {
     const s = changeStock(initialState, "p1", 24, "receive", "Alex Morgan", time);
     expect(s.products[0]?.stock).toBe(72);

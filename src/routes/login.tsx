@@ -3,15 +3,15 @@ import { Login } from "@/features/stockpilot/workspace";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — StockPilot" },
+      { title: "Sign in — Stock Genie" },
       {
         name: "description",
-        content: "Sign in to StockPilot or explore a realistic convenience store demo.",
+        content: "Sign in to Stock Genie or explore a realistic convenience store demo.",
       },
-      { property: "og:title", content: "Sign in — StockPilot" },
+      { property: "og:title", content: "Sign in — Stock Genie" },
       {
         property: "og:description",
-        content: "Sign in to StockPilot or explore a realistic convenience store demo.",
+        content: "Sign in to Stock Genie or explore a realistic convenience store demo.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

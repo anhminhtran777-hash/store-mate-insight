@@ -3,12 +3,12 @@ import { Workspace } from "@/features/stockpilot/workspace";
 export const Route = createFileRoute("/activity")({
   head: () => ({
     meta: [
-      { title: "Activity Log — StockPilot" },
+      { title: "Activity Log — Stock Genie" },
       {
         name: "description",
         content: "Track every inventory change, stock receipt, and purchase order approval.",
       },
-      { property: "og:title", content: "Activity Log — StockPilot" },
+      { property: "og:title", content: "Activity Log — Stock Genie" },
       {
         property: "og:description",
         content: "Track every inventory change, stock receipt, and purchase order approval.",
