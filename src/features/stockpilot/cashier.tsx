@@ -3,7 +3,7 @@ import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
-import { checkout, findCashierItem, money, type CartLine, type StoreDocument } from "./model";
+import { checkout, findCashierItem, groupByBarcode, money, type BarcodeGroup, type CartLine, type StoreDocument } from "./model";
 import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
 
