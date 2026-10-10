@@ -38,10 +38,22 @@ function NotFoundComponent() {
   );
 }
 
+const STALE_CHUNK = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i;
+
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
+    // A page chunk went stale after an update: reload once to fetch the fresh version.
+    if (STALE_CHUNK.test(error instanceof Error ? error.message : String(error))) {
+      const key = "stockpilot-chunk-reload";
+      const last = Number(sessionStorage.getItem(key) ?? 0);
+      if (Date.now() - last > 10000) {
+        sessionStorage.setItem(key, String(Date.now()));
+        window.location.reload();
+        return;
+      }
+    }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
