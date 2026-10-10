@@ -2,12 +2,13 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
   type Dispatch,
   type SetStateAction,
   type Context as ReactContext,
 } from "react";
-import { initialState, type StoreState } from "./model";
+import { initialState, demoProducts, type StoreState } from "./model";
 type DemoContext = {
   state: StoreState;
   setState: Dispatch<SetStateAction<StoreState>>;
@@ -29,6 +30,14 @@ const Context: ReactContext<DemoContext | null> =
   globalStore[globalKey] ?? (globalStore[globalKey] = createContext<DemoContext | null>(null));
 export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(initialState);
+  // Catalogue updates also reach an already-open demo without resetting its transactions.
+  useEffect(() => {
+    setState((current) => {
+      const existing = new Set(current.products.map((p) => p.id));
+      const additions = demoProducts.filter((p) => !existing.has(p.id));
+      return additions.length ? { ...current, products: [...current.products, ...additions] } : current;
+    });
+  }, [demoProducts]);
   const [selectedId, select] = useState("p1");
   const [user, setUser] = useState("Alex Morgan");
   const [storeName, setStoreName] = useState("Corner Market");
