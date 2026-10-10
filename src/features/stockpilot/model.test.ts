@@ -10,6 +10,7 @@ import {
   restockQuantity,
   orderCost,
   checkout,
+  confirmSupplier,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("StockPilot inventory demo", () => {
@@ -39,7 +40,7 @@ describe("StockPilot inventory demo", () => {
   });
   it("receiving approved order adds each line once", () => {
     const approved = approveOrder(initialState, "PO-1042", "Alex Morgan", time);
-    const s = receiveOrder(approved, "PO-1042", "Alex Morgan", time);
+    const s = receiveOrder(confirmSupplier(approved, "PO-1042", "Both", "Alex Morgan", time), "PO-1042", "Alex Morgan", time);
     expect(s.products[1]?.stock).toBe(66);
     expect(s.products[3]?.stock).toBe(60);
     expect(s.orders[0]?.status).toBe("Received");
@@ -94,7 +95,7 @@ describe("StockPilot inventory demo", () => {
   });
   it("received orders still count against the budget", () => {
     const approved = approveOrder(initialState, "PO-1042", "Alex Morgan", time);
-    const s = receiveOrder(approved, "PO-1042", "Alex Morgan", time);
+    const s = receiveOrder(confirmSupplier(approved, "PO-1042", "Both", "Alex Morgan", time), "PO-1042", "Alex Morgan", time);
     const committed = s.orders.reduce((n, o) => n + orderCost(s, o), 0);
     expect(committed).toBeCloseTo(
       initialState.orders.reduce((n, o) => n + orderCost(initialState, o), 0),
@@ -135,9 +136,33 @@ describe("cashier checkout and supplier documents", () => {
     expect(checkout(initialState, [{ productId: "p1", quantity: 2 }], "Cash", 1, "A", time, "R").receipt).toBeUndefined();
     expect(checkout(initialState, [{ productId: "p1", quantity: 99 }], "Card", undefined, "A", time, "R").receipt).toBeUndefined();
   });
-  it("approving and receiving an order files a purchase order and a delivery note", () => {
+  it("approval creates only a purchase request, not an invoice", () => {
     const a = approveOrder(initialState, "PO-1042", "A", time);
-    const b = receiveOrder(a, "PO-1042", "A", time);
-    expect(b.documents.map((d) => d.kind)).toEqual(["Delivery note", "Purchase order"]);
+    expect(a.documents.map((d) => d.kind)).toEqual(["Purchase order"]);
+  });
+  it("invoice-only confirmation cannot receive goods without a mandatory delivery note", () => {
+    const a = confirmSupplier(approveOrder(initialState, "PO-1042", "A", time), "PO-1042", "Invoice", "A", time);
+    expect(a.documents.filter((d) => d.kind === "Invoice")).toHaveLength(1);
+    expect(receiveOrder(a, "PO-1042", "A", time)).toBe(a);
+  });
+  it("delivery-note confirmation cannot receive goods without the original invoice", () => {
+    const a = confirmSupplier(approveOrder(initialState, "PO-1042", "A", time), "PO-1042", "Delivery note", "A", time);
+    expect(a.documents.filter((d) => d.kind === "Delivery note")).toHaveLength(1);
+    expect(receiveOrder(a, "PO-1042", "A", time)).toBe(a);
+  });
+  it("supplier confirmation does not change stock or charge the budget", () => {
+    const a = approveOrder(initialState, "PO-1042", "A", time);
+    const b = confirmSupplier(a, "PO-1042", "Both", "A", time);
+    expect(b.products).toBe(a.products);
+    expect(b.activities[0]?.amount).toBeUndefined();
+    expect(confirmSupplier(b, "PO-1042", "Both", "A", time)).toBe(b);
+  });
+  it("receiving keeps the original invoice and delivery note and links a goods receipt", () => {
+    const a = approveOrder(initialState, "PO-1042", "A", time);
+    const confirmed = confirmSupplier(a, "PO-1042", "Both", "A", time);
+    const b = receiveOrder(confirmed, "PO-1042", "A", time);
+    expect(b.documents.map((d) => d.kind)).toEqual(["Goods receipt", "Invoice", "Delivery note", "Purchase order"]);
+    expect(b.documents[0]?.relatedIds).toEqual(expect.arrayContaining([confirmed.documents[0]?.id, confirmed.documents[1]?.id]));
+    expect(b.documents[0]?.lines.map((l) => l.quantity)).toEqual([48, 24]);
   });
 });
