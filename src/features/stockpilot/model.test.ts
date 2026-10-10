@@ -14,6 +14,33 @@ import {
   createPurchaseRequest,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
+describe("Bulgarian Coca-Cola supplier catalogue", () => {
+  it("includes researched variants and distinct pack sizes under Coca-Cola Distribution", () => {
+    const products = initialState.products.filter((p) => p.supplier === "Coca-Cola Distribution");
+    expect(products.some((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "330 ml can")).toBe(true);
+    expect(products.some((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "1.5 L bottle")).toBe(true);
+    for (const brand of ["Fanta", "Sprite", "Schweppes", "Cappy", "Fuzetea", "Bankya", "Rosa", "Monster", "Powerade"]) expect(products.some((p) => p.name.startsWith(brand))).toBe(true);
+    expect(new Set(initialState.products.map((p) => p.id)).size).toBe(initialState.products.length);
+    expect(new Set(initialState.products.map((p) => p.barcode)).size).toBe(initialState.products.length);
+    for (const p of products.filter((p) => p.id.startsWith("cch-bg-"))) {
+      expect(p.stock).toBe(0);
+      expect(p.history).toEqual([0, 0, 0, 0, 0, 0]);
+      expect(p.received).toEqual([0, 0, 0, 0, 0, 0]);
+      expect(p.sold).toEqual([0, 0, 0, 0, 0, 0]);
+    }
+  });
+  it("keeps separate pack quantities on linked supplier invoices", () => {
+    const small = initialState.products.find((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "330 ml can");
+    const large = initialState.products.find((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "1.5 L bottle");
+    if (!small || !large) throw new Error("Missing Bulgarian packs");
+    const draft = createPurchaseRequest(initialState, "Coca-Cola Distribution", [{ productId: small.id, quantity: 24 }, { productId: large.id, quantity: 6 }], "Alex", time);
+    const confirmed = confirmSupplier(approveOrder(draft, "PO-1043", "Alex", time), "PO-1043", "Both", "Alex", time);
+    expect(confirmed.documents.find((d) => d.kind === "Invoice")?.lines).toEqual([
+      { name: `${small.name} (${small.size})`, quantity: 24, unit: small.cost },
+      { name: `${large.name} (${large.size})`, quantity: 6, unit: large.cost },
+    ]);
+  });
+});
 describe("manual purchase requests", () => {
   it("creates the chosen supplier and quantities as a uniquely numbered draft without stock or documents", () => {
     const s = createPurchaseRequest(initialState, "PepsiCo Wholesale", [{ productId: "p2", quantity: 12 }, { productId: "p4", quantity: 6 }], "Alex", time);

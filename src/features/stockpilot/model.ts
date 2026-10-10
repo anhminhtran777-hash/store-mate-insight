@@ -1,3 +1,5 @@
+import { cocaColaCatalogue } from "./coca-cola-catalogue";
+
 export const categories = [
   "Beverages",
   "Snacks",
@@ -103,7 +105,7 @@ const rows: [string, string, Category, number, number, number, number, string, s
   ["Kitchen Paper", "2-roll pack", "Household", 16, 8, 3.29, 1.6, "Metro Wholesale", "🧻"],
   ["Dishwashing Liquid", "500 ml bottle", "Household", 5, 10, 2.79, 1.3, "Metro Wholesale", "🧴"],
 ];
-export const demoProducts: Product[] = rows.map((r, i) => ({
+const existingDemoProducts: Product[] = rows.map((r, i) => ({
   id: `p${i + 1}`,
   name: r[0],
   size: r[1],
@@ -123,6 +125,24 @@ export const demoProducts: Product[] = rows.map((r, i) => ({
   received: [120, 156, 144, 180, 168, 132].map((n) => Math.round(n / (1 + i * 0.3))),
   sold: [108, 130, 152, 152, 182, 152].map((n) => Math.round(n / (1 + i * 0.3))),
 }));
+// Catalogue-only packs start empty: requesting goods does not imply they are on the shelf.
+export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCatalogue.map((entry, i): Product => ({
+  id: `cch-bg-${entry.key}`,
+  name: entry.name,
+  size: entry.size,
+  category: "Beverages",
+  supplier: "Coca-Cola Distribution",
+  stock: 0,
+  threshold: 12,
+  cost: entry.cost,
+  price: Math.round(entry.cost * 1.8 * 100) / 100,
+  sku: `CCBG-${entry.key.toUpperCase()}`,
+  barcode: ean13(`299${String(i + 1).padStart(9, "0")}`),
+  emoji: entry.name.startsWith("Bankya") || entry.name.startsWith("Rosa") ? "💧" : "🥤",
+  history: [0, 0, 0, 0, 0, 0],
+  received: [0, 0, 0, 0, 0, 0],
+  sold: [0, 0, 0, 0, 0, 0],
+}))];
 export const initialState: StoreState = {
   documents: [],
   products: demoProducts,
