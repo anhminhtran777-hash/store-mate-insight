@@ -22,7 +22,7 @@ export function InvoiceSheet({ doc, buyer }: { doc: StoreDocument; buyer: string
       </dl>
       <table>
         <thead><tr><th>No.</th><th>Description of goods / services</th><th>Unit</th><th>Quantity</th><th>Unit price</th><th>Amount</th></tr></thead>
-        <tbody>{doc.lines.map((line, i) => <tr key={i}><td>{i + 1}</td><td>{line.name}</td><td>{acc || credit ? "—" : "pcs"}</td><td>{line.quantity}</td><td>{money(line.unit)}</td><td>{money(line.unit * line.quantity)}</td></tr>)}</tbody>
+        <tbody>{doc.lines.map((line, i) => <tr key={i}><td>{i + 1}</td><td>{line.name}</td><td>{acc || credit ? "service" : "pcs"}</td><td>{line.quantity}</td><td>{money(line.unit)}</td><td>{money(line.unit * line.quantity)}</td></tr>)}</tbody>
       </table>
       <section className="invoice-totals">
         <dl><div><dt>{credit ? "Credited value" : "Goods value"}</dt><dd>{money(doc.total)}</dd></div><div><dt>VAT rate / amount</dt><dd>Not recorded</dd></div></dl>
