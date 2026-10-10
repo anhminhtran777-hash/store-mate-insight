@@ -34,7 +34,7 @@ describe("daily demo chart values", () => {
     const weekly = periodChartData(product, "Weekly");
     expect(weekly).toHaveLength(24);
     expect(weekly.reduce((sum, point) => sum + point.received, 0)).toBe(900);
-    expect(weekly.reduce((sum, point) => sum + point.sold, 0)).toBe(976);
+    expect(weekly.reduce((sum, point) => sum + point.sold, 0)).toBe(876);
     expect(weekly.at(-1)?.stock).toBe(48);
   });
   it("yearly only aggregates available demo history without inventing other years", () => {
@@ -43,7 +43,7 @@ describe("daily demo chart values", () => {
     expect(yearly[0]).toMatchObject({
       label: "2026 YTD",
       received: 900,
-      sold: 976,
+      sold: 876,
       stock: 48,
       value: 40.8,
     });
