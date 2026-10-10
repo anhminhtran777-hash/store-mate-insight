@@ -314,7 +314,7 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {products.map((p) => (
+          {allProducts.map((p) => (
             <button
               key={p.id}
               className={`cashier-item category-${p.category.toLowerCase()}`}
