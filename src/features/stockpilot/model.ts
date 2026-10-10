@@ -399,6 +399,32 @@ export function confirmSupplier(state: StoreState, id: string, kind: "Invoice" |
   return { ...state, documents: [...docs, ...(state.documents ?? [])], activities: [{ id: `${time}-${id}-confirmation`, product: id, actor, action: "Supplier confirmation recorded", time }, ...state.activities] };
 }
 export type CartLine = { productId: string; quantity: number };
+/**
+ * Finds one sellable product from whatever the cashier typed: item code
+ * (1–3 digits), full barcode, SKU, exact name, or a unique name/SKU/barcode
+ * substring. Returns "many" when the text matches several products.
+ */
+export function findCashierItem(products: Product[], raw: string): Product | "many" | undefined {
+  const query = raw.trim();
+  if (!query) return undefined;
+  const lower = query.toLowerCase();
+  if (/^\d{1,3}$/.test(query)) {
+    const byCode = products[Number(query) - 1];
+    if (byCode) return byCode;
+  }
+  const exact = products.find(
+    (p) => p.barcode === query || p.sku.toLowerCase() === lower || p.name.toLowerCase() === lower,
+  );
+  if (exact) return exact;
+  const fuzzy = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(lower) ||
+      p.sku.toLowerCase().includes(lower) ||
+      (p.barcode ?? "").includes(query),
+  );
+  if (fuzzy.length === 1) return fuzzy[0];
+  return fuzzy.length > 1 ? "many" : undefined;
+}
 /** Sells a whole cart: lowers stock, logs each sale and issues one receipt. Rejects carts exceeding stock. */
 export function checkout(
   state: StoreState,
