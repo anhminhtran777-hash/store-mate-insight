@@ -24,6 +24,11 @@ describe("StockPilot inventory demo", () => {
     expect(s.products[0]?.sold[5]).toBe(164);
     expect(changeStock(s, "p1", 37, "sell", "Jamie Lee", time)).toBe(s);
   });
+  it("selling stock logs the revenue earned at product price", () => {
+    const s = changeStock(initialState, "p1", 12, "sell", "Jamie Lee", time);
+    expect(s.activities[0]?.amount).toBeCloseTo(12 * 1.99);
+    expect(s.activities[0]?.flow).toBe("in");
+  });
   it("draft approval changes order status but not stock", () => {
     const s = approveOrder(initialState, "PO-1042", "Alex Morgan", time);
     expect(s.orders[0]?.status).toBe("Approved");
