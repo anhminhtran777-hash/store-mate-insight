@@ -11,4 +11,4 @@
 - [x] Keep stat caption text fixed green/red in every theme.
 - [ ] Logo: on hold — the app name will change first.
 - [x] Make receipts narrow and centered and supplier documents larger with complete available details; verify screen and print views.
-- [ ] Separate purchase requests from simulated supplier confirmations; require invoice and delivery note for receiving, link goods receipts, and match invoice reference styling.
+- [x] Separate purchase requests from simulated supplier confirmations; require invoice and delivery note for receiving, link goods receipts, and match invoice reference styling.

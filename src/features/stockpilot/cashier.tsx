@@ -72,7 +72,7 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
         <div><dt>{goods ? "Received on" : delivery ? "Issued on" : "Requested on"}</dt><dd>{date}</dd></div>
         <div><dt>Purchase order</dt><dd>{doc.reference}</dd></div>
         <div><dt>Order created</dt><dd>{order?.date ?? "Not recorded"}</dd></div>
-        <div><dt>{delivery ? "Receiving officer" : "Authorized by"}</dt><dd>{doc.actor}</dd></div>
+        <div><dt>{goods ? "Receiving officer" : delivery ? "Issued by" : "Requested by"}</dt><dd>{doc.actor}</dd></div>
       </dl>
       <table>
         <caption>{goods ? "Goods received into stock" : delivery ? "Goods dispatched" : "Items requested"}</caption>
@@ -103,10 +103,11 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
         <span className="doc-label">{delivery ? "Receiving record" : "Order notes"}</span>
         <p>{goods ? `Receipt recorded by ${doc.actor} on ${date}. Retained with the supplier delivery note and original invoice.` : `Please reference ${doc.reference} on related deliveries and supplier correspondence.`}</p>
         <p>Tax, delivery charges and payment terms are not recorded. This document is not a tax invoice.</p>
+        {(goods || delivery) && <p>{(state.documents ?? []).filter((d) => d.reference === doc.reference && d.id !== doc.id && (d.kind === "Invoice" || d.kind === "Delivery note" || d.kind === "Goods receipt")).map((d) => `${d.kind}: ${d.number ?? d.reference}`).join(" · ")}</p>}
       </section>
       <footer className="business-footer">
-        <div><span>{delivery ? "Received by" : "Approved by"}</span><strong>{doc.actor}</strong></div>
-        <div><span>Document reference</span><strong>{delivery ? "DN · " : ""}{doc.reference}</strong></div>
+        <div><span>{goods ? "Received by" : delivery ? "Issued by" : "Requested by"}</span><strong>{doc.actor}</strong></div>
+        <div><span>Document reference</span><strong>{doc.number ?? doc.reference}</strong></div>
       </footer>
     </article>
   );
