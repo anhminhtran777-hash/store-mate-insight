@@ -69,7 +69,6 @@ import { Assistant } from "./assistant";
 import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
 import { NotificationCenter } from "./notifications";
-import cola from "@/assets/cola.jpg";
 import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
@@ -440,7 +439,7 @@ function ProductRow({ product: p }: { product: Product }) {
       onClick={() => select(p.id)}
     >
       <span className={`product-thumbnail category-${p.category.toLowerCase()}`}>
-        {p.id === "p1" ? <img src={cola} alt="" width={48} height={48} /> : <Icon size={22} />}
+        <Icon size={22} />
       </span>
       <span className="product-row-name">
         <strong>{p.name}</strong>
@@ -478,11 +477,8 @@ function ProductDetail({
       </div>
       <div className="detail-hero">
         <div className={`detail-image category-${p.category.toLowerCase()}`}>
-          {p.id === "p1" ? (
-            <img src={cola} alt="Coca-Cola Original can" width={160} height={160} />
-          ) : (
             <span className="detail-emoji">{p.emoji}</span>
-          )}
+
         </div>
         <div className="detail-product-title">
           <span className={`category-tag category-${p.category.toLowerCase()}`}>
@@ -1372,7 +1368,7 @@ export function Login() {
           </p>
           <div className="login-art">
             <div className="login-art-product">
-              <img src={cola} alt="Coca-Cola can" width={200} height={200} />
+              <span className="login-art-emoji">🥤</span>
               <span>Coca-Cola Original</span>
               <strong>
                 48 <small>units in stock</small>

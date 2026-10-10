@@ -15,3 +15,4 @@
 - [x] Separate purchase requests from simulated supplier confirmations; require invoice and delivery note for receiving, link goods receipts, and match invoice reference styling.
 - [x] Add manual purchase requests and verify their supplier invoice and receiving flow.
 - [x] Expand Coca-Cola Distribution with researched Bulgarian brands, variants and pack sizes; verify manual ordering.
+- [x] Remove the Coca-Cola product photo from the list, detail panel and login card.
