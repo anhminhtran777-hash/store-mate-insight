@@ -44,17 +44,23 @@ describe("Bulgarian Coca-Cola supplier catalogue", () => {
 });
 describe("cashier numpad item lookup", () => {
   const sellable = initialState.products.filter((p) => !p.archived);
+  const idOf = (q: string) => {
+    const r = findCashierItem(sellable, q);
+    return r && r !== "many" ? r.id : undefined;
+  };
   it("finds items by item code, barcode, SKU, exact name and unique name fragment", () => {
     const coke = sellable[0];
     expect(coke).toBeDefined();
     if (!coke) return;
-    expect(findCashierItem(sellable, "1")?.id).toBe(coke.id);
-    expect(findCashierItem(sellable, coke.barcode ?? "")?.id).toBe(coke.id);
-    expect(findCashierItem(sellable, coke.sku)?.id).toBe(coke.id);
-    expect(findCashierItem(sellable, coke.sku.toLowerCase())?.id).toBe(coke.id);
-    expect(findCashierItem(sellable, coke.name)?.id).toBe(coke.id);
-    expect(findCashierItem(sellable, "coca-cola original")?.id).toBe(coke.id);
+    expect(idOf("1")).toBe(coke.id);
+    expect(idOf(coke.barcode ?? "")).toBe(coke.id);
+    expect(idOf(coke.sku)).toBe(coke.id);
+    expect(idOf(coke.sku.toLowerCase())).toBe(coke.id);
+    expect(idOf(coke.name)).toBe(coke.id);
+    expect(idOf("coca-cola original")).toBe(coke.id);
+    expect(idOf("coca-cola original 330 ml can")).toBe(coke.id);
   });
+});
   it("reports several matches and no match, and never returns archived items", () => {
     expect(findCashierItem(sellable, "coca-cola")).toBe("many");
     expect(findCashierItem(sellable, "zzz-nothing")).toBeUndefined();
