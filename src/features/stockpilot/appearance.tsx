@@ -6,6 +6,10 @@ export const themes = [
   { id: "forest", name: "Forest", description: "Off-white · evergreen", dark: false },
   { id: "night", name: "Nightfall", description: "Charcoal · mint", dark: true },
   { id: "daylight", name: "Daylight", description: "Cool white · ocean blue", dark: false },
+  { id: "midnight", name: "Midnight", description: "Deep navy · ice blue", dark: true },
+  { id: "ember", name: "Ember", description: "Warm charcoal · amber", dark: true },
+  { id: "orchid", name: "Orchid", description: "Soft violet · lavender", dark: false },
+  { id: "harvest", name: "Harvest", description: "Warm cream · terracotta", dark: false },
 ] as const;
 type Theme = (typeof themes)[number]["id"];
 type AppearanceValue = { theme: Theme; setTheme: (theme: Theme) => void };
@@ -17,7 +21,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("forest");
   useEffect(() => {
     document.documentElement.dataset["theme"] = theme;
-    document.documentElement.classList.toggle("dark", theme === "night");
+    document.documentElement.classList.toggle("dark", theme.dark);
     return () => {
       delete document.documentElement.dataset["theme"];
       document.documentElement.classList.remove("dark");

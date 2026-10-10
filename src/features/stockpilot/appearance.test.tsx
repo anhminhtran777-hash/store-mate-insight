@@ -10,8 +10,14 @@ it("applies all workspace themes and restores the default", () => {
   fireEvent.click(screen.getByRole("button", { name: /Nightfall/ }));
   expect(document.documentElement.dataset["theme"]).toBe("night");
   expect(document.documentElement.classList.contains("dark")).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: /Midnight/ }));
+  expect(document.documentElement.dataset["theme"]).toBe("midnight");
+  expect(document.documentElement.classList.contains("dark")).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: /Daylight/ }));
   expect(document.documentElement.dataset["theme"]).toBe("daylight");
+  expect(document.documentElement.classList.contains("dark")).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: /Harvest/ }));
+  expect(document.documentElement.dataset["theme"]).toBe("harvest");
   expect(document.documentElement.classList.contains("dark")).toBe(false);
   fireEvent.click(screen.getByRole("button", { name: /Forest/ }));
   expect(document.documentElement.dataset["theme"]).toBe("forest");
