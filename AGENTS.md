@@ -17,3 +17,4 @@
 - Keep daily subdivisions and period aggregation in a pure chart-data adapter; sum received/sold flows and use closing stock/value, so chart views stay consistent without changing inventory transitions or inventing unavailable history.
 - Keep appearance in a session-only provider above the outlet and apply themes through global semantic CSS tokens so navigation and dialogs retain the same theme without changing inventory data.
 - Signal good/bad with the dedicated up/down color tokens rather than the theme accent, so positive and negative readings stay green and red in every theme.
+- Render document previews and printouts from the same DocumentSheet with separate receipt and supplier layouts; show only recorded information so print and archive views stay consistent without fabricating invoice details.

@@ -2397,7 +2397,7 @@
   body.printing-doc * { visibility: hidden !important; }
   body.printing-doc { background: var(--paper); }
   body.printing-doc .app-shell, body.printing-doc [data-slot="dialog-overlay"], body.printing-doc [data-state="open"][aria-hidden="true"] { display: none !important; }
-  body.printing-doc .doc-dialog { position: static; transform: none; width: 100%; max-width: none; max-height: none; padding: 0; border: 0; box-shadow: none; display: block; background: var(--paper); }
+  body.printing-doc .doc-dialog { position: static; inset: auto; transform: none !important; translate: none !important; animation: none !important; width: 100%; max-width: none; max-height: none; padding: 0; border: 0; border-radius: 0; box-shadow: none; display: block; background: var(--paper); }
   body.printing-doc .doc-dialog > :not(.doc-preview) { display: none !important; }
   body.printing-doc .doc-preview { overflow: visible; padding: 0; border: 0; background: var(--paper); }
   body.printing-doc .doc-sheet, body.printing-doc .doc-sheet * { visibility: visible !important; }
