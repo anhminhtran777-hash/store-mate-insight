@@ -136,6 +136,22 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   received: [120, 156, 144, 180, 168, 132].map((n) => Math.round(n / (1 + i * 0.3))),
   sold: [108, 130, 152, 152, 182, 152].map((n) => Math.round(n / (1 + i * 0.3))),
 }));
+/** Units per wholesale stack for a catalogue pack, estimated from its pack size. */
+export function catalogueCaseSize(size: string): number {
+  const s = size.toLowerCase();
+  if (s.includes("glass bottle")) return 20;
+  if (s.includes("can")) return 24;
+  const ml = /(\d+(?:\.\d+)?)\s*(ml|l)\b/.exec(s);
+  const liters = ml ? (ml[2] === "l" ? Number(ml[1]) : Number(ml[1]) / 1000) : 0;
+  if (liters >= 1.5) return 6;
+  if (liters >= 0.75) return 12;
+  if (liters > 0) return 24;
+  return 6; // coffee bags, spirits and other non-liter packs
+}
+/** Total units when ordering whole stacks of a product. */
+export function stackUnits(product: Product, stacks: number): number {
+  return Math.max(0, Math.round(stacks)) * (product.caseSize ?? 1);
+}
 // Catalogue-only packs start empty: requesting goods does not imply they are on the shelf.
 export const demoProducts: Product[] = [...existingDemoProducts, ...cocaColaCatalogue.map((entry, i): Product => ({
   id: `cch-bg-${entry.key}`,
