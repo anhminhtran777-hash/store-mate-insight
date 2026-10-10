@@ -253,8 +253,15 @@ export function Cashier() {
     );
   };
   const press = (key: string) => {
+    // While a text query is being typed (name/SKU lookup), operator keys become letters.
+    const textMode = /[A-Za-z]/.test(buffer);
+    if (key === " ") {
+      if (textMode) setBuffer((b) => (b + " ").slice(0, 40));
+      return;
+    }
     if (/^[\dA-Za-z]$/.test(key)) return setBuffer((b) => (b + key).slice(0, 40));
     if (key === "Backspace") return setBuffer((b) => b.slice(0, -1));
+    if (textMode && /^[*\-+/.]$/.test(key)) return setBuffer((b) => (b + key).slice(0, 40));
     if (key === "*") {
       const n = Number(buffer);
       setBuffer("");
@@ -301,7 +308,7 @@ export function Cashier() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
       if (document.querySelector("[role=dialog]")) return;
-      if (/^[a-zA-Z0-9*+\-/.]$/.test(e.key) || e.key === "Enter" || e.key === "Backspace") {
+      if (/^[a-zA-Z0-9*+\-/.\s]$/.test(e.key) || e.key === "Enter" || e.key === "Backspace") {
         e.preventDefault();
         pressRef.current(e.key);
       }
