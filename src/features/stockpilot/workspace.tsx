@@ -14,8 +14,6 @@ import {
   ChevronDown,
   Plus,
   Search,
-  Pin,
-  PinOff,
   ArrowDownToLine,
   Pencil,
   Archive,
@@ -135,15 +133,6 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
       >
         <div className="sidebar-top">
           <Logo />
-          <Button
-            variant="nav-icon"
-            size="icon"
-            title={pinned ? "Unpin sidebar" : "Pin sidebar"}
-            aria-label={pinned ? "Unpin sidebar" : "Pin sidebar"}
-            onClick={() => setPinned(!pinned)}
-          >
-            {pinned ? <Pin size={15} /> : <PinOff size={15} />}
-          </Button>
         </div>
         <div className="store-switch">
           <span className="store-icon">
