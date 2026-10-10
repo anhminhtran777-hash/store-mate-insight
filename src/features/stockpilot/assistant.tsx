@@ -14,11 +14,11 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
-import { useStock Genie } from "./store";
+import { useStockPilot } from "./store";
 import { isLowStock, money } from "./model";
 type ChatMessage = { role: "user" | "assistant"; text: string };
 export function Assistant() {
-  const { state, setState, user } = useStock Genie();
+  const { state, setState, user } = useStockPilot();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
