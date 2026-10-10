@@ -1619,6 +1619,8 @@
   border-bottom: 1px solid var(--border);
   margin-top: 18px;
   min-height: 105px;
+  max-height: 220px;
+  overflow-y: auto;
   padding: 13px 0;
 }
 .order-lines > div {
