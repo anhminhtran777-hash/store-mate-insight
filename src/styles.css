@@ -362,7 +362,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  z-index: 42;
+  z-index: 39;
 }
 .sidebar-pinned .edge-target {
   display: none;
