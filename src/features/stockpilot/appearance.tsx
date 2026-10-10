@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode, type Context } from "react";
+import { createContext, useContext, useEffect, type ReactNode, type Context } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePref } from "./accounts";
 
 export const themes = [
   { id: "forest", name: "Forest", description: "Off-white · evergreen", dark: false },
@@ -18,7 +19,7 @@ const appearanceStore = globalThis as unknown as { __stockpilotAppearance__?: Co
 const AppearanceContext = (appearanceStore.__stockpilotAppearance__ ??= createContext<AppearanceValue | null>(null));
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("forest");
+  const [theme, setTheme] = usePref<Theme>("theme", "forest");
   const themeConfig = themes.find((t) => t.id === theme) ?? themes[0];
   useEffect(() => {
     document.documentElement.dataset["theme"] = theme;

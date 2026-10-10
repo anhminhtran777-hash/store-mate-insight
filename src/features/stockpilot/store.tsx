@@ -8,6 +8,7 @@ import {
   type SetStateAction,
   type Context as ReactContext,
 } from "react";
+import { usePref, getCurrentAccount, onPrefsChange } from "./accounts";
 import { initialState, demoProducts, demoProfiles, type StoreState, type Role } from "./model";
 type DemoContext = {
   state: StoreState;
@@ -15,7 +16,7 @@ type DemoContext = {
   selectedId: string;
   select: (id: string) => void;
   user: string;
-  setUser: (user: string) => void;
+  setUser: (user: string | null) => void;
   role: Role;
   setRole: (role: Role) => void;
   storeName: string;
@@ -43,11 +44,22 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
     });
   }, [demoProducts]);
   const [selectedId, select] = useState("p1");
-  const [user, setUser] = useState(demoProfiles.Manager);
+  // Account-scoped values persist in this browser per signed-in account.
+  const [savedUser, setUser] = usePref<string | null>("user", null);
   const [role, setRole] = useState<Role>("Manager");
-  const [storeName, setStoreName] = useState("Corner Market");
-  const [pinned, setPinned] = useState(false);
-  const [budget, setBudget] = useState(1500);
+  const [accountName, setAccountName] = useState(demoProfiles.Manager);
+  useEffect(() => {
+    const sync = () => {
+      const acc = getCurrentAccount();
+      if (acc) { setRole(acc.role); setAccountName(acc.name); }
+    };
+    sync();
+    return onPrefsChange(sync);
+  }, []);
+  const user = savedUser ?? accountName;
+  const [storeName, setStoreName] = usePref("storeName", "Corner Market");
+  const [pinned, setPinned] = usePref("pinned", false);
+  const [budget, setBudget] = usePref("budget", 1500);
   const [notificationStatus, setNotificationStatus] = useState<Record<string, "read" | "dismissed">>({});
   return (
     <Context.Provider
