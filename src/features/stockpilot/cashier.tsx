@@ -3,7 +3,7 @@ import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
-import { checkout, money, type CartLine, type StoreDocument } from "./model";
+import { checkout, findCashierItem, money, type CartLine, type StoreDocument } from "./model";
 import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
 
@@ -192,7 +192,7 @@ export function DocumentDialog({
 }
 
 const keyHelp: [string, string][] = [
-  ["Number + Enter", "Add item by its code (or barcode)"],
+  ["Code + Enter", "Add item by code, barcode, SKU or name (type on the keyboard)"],
   ["Number + *", "Set quantity for the next item"],
   ["+", "One more of the last item"],
   ["−", "Remove the last item"],
@@ -253,7 +253,7 @@ export function Cashier() {
     );
   };
   const press = (key: string) => {
-    if (/^\d$/.test(key)) return setBuffer((b) => (b + key).slice(0, 14));
+    if (/^[\dA-Za-z]$/.test(key)) return setBuffer((b) => (b + key).slice(0, 40));
     if (key === "Backspace") return setBuffer((b) => b.slice(0, -1));
     if (key === "*") {
       const n = Number(buffer);
@@ -267,12 +267,10 @@ export function Cashier() {
     if (key === "Enter") {
       setBuffer("");
       if (!buffer) return pay("Card");
-      const p =
-        state.products[Number(buffer) - 1] && buffer.length <= 3
-          ? state.products[Number(buffer) - 1]
-          : state.products.find((p) => p.barcode === buffer);
-      if (!p || p.archived) return setMessage(`No item with code ${buffer}.`);
-      add(p.id, qty);
+      const found = findCashierItem(allProducts, buffer);
+      if (found === "many") return setMessage(`Several items match "${buffer}" — type more characters.`);
+      if (!found) return setMessage(`No item matches "${buffer}".`);
+      add(found.id, qty);
       setQty(1);
       return;
     }
@@ -303,7 +301,7 @@ export function Cashier() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
       if (document.querySelector("[role=dialog]")) return;
-      if (/^[\d*+\-/.]$/.test(e.key) || e.key === "Enter" || e.key === "Backspace") {
+      if (/^[a-zA-Z0-9*+\-/.]$/.test(e.key) || e.key === "Enter" || e.key === "Backspace") {
         e.preventDefault();
         pressRef.current(e.key);
       }
