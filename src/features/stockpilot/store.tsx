@@ -28,6 +28,7 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState("Alex Morgan");
   const [storeName, setStoreName] = useState("Corner Market");
   const [pinned, setPinned] = useState(true);
+  const [budget, setBudget] = useState(1500);
   return (
     <Context.Provider
       value={{
