@@ -8,7 +8,13 @@ import {
   Layers,
 } from "lucide-react";
 import { money, trendColor, type Product } from "./model";
-import { chartPeriods, chartPeriodLabel, periodChartData, type ChartPeriod, type PeriodChartPoint } from "./chart-data";
+import {
+  chartPeriods,
+  chartPeriodLabel,
+  periodChartData,
+  type ChartPeriod,
+  type PeriodChartPoint,
+} from "./chart-data";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Metric = "stock" | "value" | "received";
@@ -34,8 +40,13 @@ function TrendChart({
       ...(bars ? points.map((point) => point.sold) : []),
     ) * 1.18;
   const slot = 272 / Math.max(1, points.length);
-  const barWidth = Math.min(14, slot * .34);
-  const x = (index: number) => bars ? 36 + slot * (index + .5) : points.length === 1 ? 172 : 36 + (index / (points.length - 1)) * 272;
+  const barWidth = Math.min(14, slot * 0.34);
+  const x = (index: number) =>
+    bars
+      ? 36 + slot * (index + 0.5)
+      : points.length === 1
+        ? 172
+        : 36 + (index / (points.length - 1)) * 272;
   const y = (value: number) => 158 - (value / max) * 132;
   const selected = active === null ? undefined : points[active];
   const format = (value: number) => (metric === "value" ? money(value) : `${value} units`);
@@ -55,7 +66,9 @@ function TrendChart({
               0,
               Math.min(
                 points.length - 1,
-                bars ? Math.floor((position - 36) / slot) : Math.round(((position - 36) / 272) * (points.length - 1)),
+                bars
+                  ? Math.floor((position - 36) / slot)
+                  : Math.round(((position - 36) / 272) * (points.length - 1)),
               ),
             ),
           );
@@ -149,7 +162,14 @@ function TrendChart({
                   />
                 )
               )}
-              {!bars && (points.length === 1 || period === "Monthly") && <circle cx={x(index)} cy={y(point[metric])} r="3.5" fill={previous ? trendColor(previous[metric], point[metric]) : "var(--primary)"} />}
+              {!bars && (points.length === 1 || period === "Monthly") && (
+                <circle
+                  cx={x(index)}
+                  cy={y(point[metric])}
+                  r="3.5"
+                  fill={previous ? trendColor(previous[metric], point[metric]) : "var(--primary)"}
+                />
+              )}
               {(points.length <= 6 || index % Math.ceil(points.length / 5) === 0) && (
                 <text x={x(index)} y="181" textAnchor="middle" className="chart-label">
                   {point.label}
@@ -215,52 +235,86 @@ export function ProductCharts({ product }: { product: Product }) {
   const points = periodChartData(product, period);
   const first = points[0];
   const last = points.at(-1);
-  const range = first && last ? `${first.startDate.slice(5).replace("-", "/")} – ${last.date.slice(5).replace("-", "/")}, 2026` : "2026";
+  const range =
+    first && last
+      ? `${first.startDate.slice(5).replace("-", "/")} – ${last.date.slice(5).replace("-", "/")}, 2026`
+      : "2026";
   const diff = (product.history[5] ?? product.stock) - (product.history[4] ?? product.stock);
   return (
     <div className="product-charts">
       <div className="chart-controls">
         <span>{period === "Daily" ? "Last 30 days" : "Available history · 2026"}</span>
-        <ToggleGroup type="single" value={period} aria-label="Chart interval" className="chart-period-switch" onValueChange={value => {
-          if (chartPeriods.some(option => option === value)) { setPeriod(value as ChartPeriod); setActive(null); }
-        }}>
-          {chartPeriods.map(option => <ToggleGroupItem key={option} value={option} aria-label={option}>{option}</ToggleGroupItem>)}
+        <ToggleGroup
+          type="single"
+          value={period}
+          aria-label="Chart interval"
+          className="chart-period-switch"
+          onValueChange={(value) => {
+            if (chartPeriods.some((option) => option === value)) {
+              setPeriod(value as ChartPeriod);
+              setActive(null);
+            }
+          }}
+        >
+          {chartPeriods.map((option) => (
+            <ToggleGroupItem key={option} value={option} aria-label={option}>
+              {option}
+            </ToggleGroupItem>
+          ))}
         </ToggleGroup>
       </div>
       <div className="charts-grid">
-      <ChartBlock
-        period={period}
-        range={range}
-        title="Stock levels"
-        value={`${product.stock}`}
-        suffix="units on hand"
-        diff={diff}
-        icon={<Package size={14} />}
-      >
-        <TrendChart period={period} points={points} metric="stock" active={active} onActive={setActive} />
-      </ChartBlock>
-      <ChartBlock
-        period={period}
-        range={range}
-        title="Received vs. sold"
-        value={`${product.received[5] ?? 0}`}
-        suffix="received this month"
-        icon={<Layers size={14} />}
-      >
-        <TrendChart period={period} points={points} metric="received" active={active} onActive={setActive} />
-      </ChartBlock>
-      <ChartBlock
-        period={period}
-        range={range}
-        title="Inventory value"
-        value={money(product.stock * product.cost)}
-        suffix="at cost"
-        diff={diff * product.cost}
-        currency
-        icon={<ChartNoAxesCombined size={14} />}
-      >
-        <TrendChart period={period} points={points} metric="value" active={active} onActive={setActive} />
-      </ChartBlock>
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Stock levels"
+          value={`${product.stock}`}
+          suffix="units on hand"
+          diff={diff}
+          icon={<Package size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="stock"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Received vs. sold"
+          value={`${product.received[5] ?? 0}`}
+          suffix="received this month"
+          icon={<Layers size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="received"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
+        <ChartBlock
+          period={period}
+          range={range}
+          title="Inventory value"
+          value={money(product.stock * product.cost)}
+          suffix="at cost"
+          diff={diff * product.cost}
+          currency
+          icon={<ChartNoAxesCombined size={14} />}
+        >
+          <TrendChart
+            period={period}
+            points={points}
+            metric="value"
+            active={active}
+            onActive={setActive}
+          />
+        </ChartBlock>
       </div>
     </div>
   );

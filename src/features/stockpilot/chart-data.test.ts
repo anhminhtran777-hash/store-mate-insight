@@ -27,8 +27,8 @@ describe("daily demo chart values", () => {
     expect(periodChartData(product, "Daily")).toHaveLength(30);
     const monthly = periodChartData(product, "Monthly");
     expect(monthly).toHaveLength(6);
-    expect(monthly.map(point => point.received)).toEqual([120, 156, 144, 180, 168, 132]);
-    expect(monthly.map(point => point.stock)).toEqual([36, 62, 54, 82, 68, 48]);
+    expect(monthly.map((point) => point.received)).toEqual([120, 156, 144, 180, 168, 132]);
+    expect(monthly.map((point) => point.stock)).toEqual([36, 62, 54, 82, 68, 48]);
   });
   it("weekly sums flows but uses closing stock rather than summing inventory", () => {
     const weekly = periodChartData(product, "Weekly");
@@ -40,6 +40,12 @@ describe("daily demo chart values", () => {
   it("yearly only aggregates available demo history without inventing other years", () => {
     const yearly = periodChartData(product, "Yearly");
     expect(yearly).toHaveLength(1);
-    expect(yearly[0]).toMatchObject({ label: "2026 YTD", received: 900, sold: 976, stock: 48, value: 40.8 });
+    expect(yearly[0]).toMatchObject({
+      label: "2026 YTD",
+      received: 900,
+      sold: 976,
+      stock: 48,
+      value: 40.8,
+    });
   });
 });
