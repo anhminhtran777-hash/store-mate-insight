@@ -13,6 +13,7 @@ import {
   confirmSupplier,
   createPurchaseRequest,
   findCashierItem,
+  groupByBarcode,
 } from "./model";
 const time = "2026-10-10T09:30:00Z";
 describe("Bulgarian Coca-Cola supplier catalogue", () => {
