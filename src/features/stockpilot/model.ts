@@ -51,7 +51,7 @@ export type Order = {
 export type DocLine = { name: string; quantity: number; unit: number; productId?: string };
 export type StoreDocument = {
   id: string;
-  kind: "Receipt" | "Refund receipt" | "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt" | "Accounting invoice";
+  kind: "Receipt" | "Refund receipt" | "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt" | "Accounting invoice" | "Credit memo";
   reference: string;
   party: string;
   actor: string;

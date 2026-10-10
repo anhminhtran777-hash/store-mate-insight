@@ -27,7 +27,7 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   const order = state.orders.find((o) => o.id === doc.reference);
   const date = new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   const units = doc.lines.reduce((n, line) => n + line.quantity, 0);
-  if (doc.kind === "Invoice" || doc.kind === "Accounting invoice") return <InvoiceSheet doc={doc} buyer={storeName} />;
+  if (doc.kind === "Invoice" || doc.kind === "Accounting invoice" || doc.kind === "Credit memo") return <InvoiceSheet doc={doc} buyer={storeName} />;
   if (receipt) return (
     <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
       <header className="receipt-heading">
@@ -446,13 +446,14 @@ export function Cashier() {
   );
 }
 
-const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator };
+const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck, "Accounting invoice": Calculator, "Credit memo": Undo2 };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
   const [open, setOpen] = useState<StoreDocument | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter);
+  const [memoOpen, setMemoOpen] = useState(false);
+  const docs = (state.documents ?? []).filter((d) => filter === "All" || d.kind === filter || (filter === "Accounting invoice" && d.kind === "Credit memo"));
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
@@ -471,8 +472,11 @@ export function Documents() {
       </div>
       {filter === "Accounting invoice" && (
         <div className="flex justify-between items-center gap-2 py-3">
-          <p className="text-sm text-muted-foreground">Invoices for accounting only — rent, utilities, services. They never change stock.</p>
-          <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> Record accounting invoice</Button>
+          <p className="text-sm text-muted-foreground">Invoices and credit memos for accounting only — rent, utilities, services. They never change stock.</p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setMemoOpen(true)}><Plus /> Record credit memo</Button>
+            <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> Record accounting invoice</Button>
+          </div>
         </div>
       )}
       {!docs.length ? (
@@ -505,7 +509,60 @@ export function Documents() {
       )}
       <DocumentDialog doc={open} close={() => setOpen(null)} />
       <AccountingInvoiceDialog open={addOpen} onOpenChange={setAddOpen} />
+      <CreditMemoDialog open={memoOpen} onOpenChange={setMemoOpen} />
     </section>
+  );
+}
+
+function CreditMemoDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const { setState, user } = useStockPilot();
+  const [error, setError] = useState("");
+  const submit = (e: import("react").FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const get = (k: string) => String(f.get(k) ?? "").trim();
+    const amount = Number(get("amount"));
+    if (!get("party") || !get("number") || !get("date") || !get("description") || !(amount > 0))
+      return setError("Fill in issuer, memo number, date, description and a positive amount.");
+    const id = `CM-${Date.now()}`;
+    const doc: StoreDocument = {
+      id, kind: "Credit memo", reference: get("number"), number: get("number"),
+      party: get("party"), actor: user, time: new Date(`${get("date")}T12:00:00`).toISOString(),
+      lines: [{ name: get("description"), quantity: 1, unit: amount }], total: amount,
+      ...(get("invoice") ? { reason: get("invoice") } : {}),
+      ...(get("category") ? { note: get("category") } : {}),
+    };
+    setState((s) => ({ ...s, documents: [doc, ...(s.documents ?? [])] }));
+    setError("");
+    onOpenChange(false);
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Record credit memo</DialogTitle>
+          <DialogDescription>A credit note from a supplier, for accounting only — stock and orders stay unchanged.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="product-form">
+          <label>Issuer / supplier<input name="party" required placeholder="e.g. Sofia Power Co." /></label>
+          <div className="form-two">
+            <label>Credit memo number<input name="number" required placeholder="e.g. CM-000045" /></label>
+            <label>Memo date<input name="date" type="date" required /></label>
+          </div>
+          <label>Description<input name="description" required placeholder="e.g. Overcharge correction, September" /></label>
+          <div className="form-two">
+            <label>Amount credited ($)<input name="amount" type="number" step="0.01" min="0.01" required /></label>
+            <label>Category (optional)<input name="category" placeholder="e.g. Utilities" /></label>
+          </div>
+          <label>Related invoice number (optional)<input name="invoice" placeholder="Leave empty if there is no document" /></label>
+          {error && <p className="negative text-sm" role="alert">{error}</p>}
+          <div className="flex justify-end gap-2 mt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit">Save credit memo</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
