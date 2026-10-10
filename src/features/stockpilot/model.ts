@@ -21,6 +21,8 @@ export type Product = {
   supplier: string;
   sku: string;
   barcode: string;
+  /** Extra scan codes that also belong to this product (a product is not limited to one barcode). */
+  barcodes?: string[];
   emoji: string;
   archived?: boolean;
   history: number[];
