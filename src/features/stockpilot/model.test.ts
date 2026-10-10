@@ -59,7 +59,7 @@ describe("cashier numpad item lookup", () => {
     expect(findCashierItem(sellable, "coca-cola")).toBe("many");
     expect(findCashierItem(sellable, "zzz-nothing")).toBeUndefined();
     const archived = initialState.products.map((p) => (p.id === "p1" ? { ...p, archived: true } : p));
-    expect(findCashierItem(archived.filter((p) => !p.archived), "1")).toBeUndefined();
+    expect(findCashierItem(archived.filter((p) => !p.archived), "Coca-Cola Original 330ml can")).toBeUndefined();
   });
 });
 describe("manual purchase requests", () => {
