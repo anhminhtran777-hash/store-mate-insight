@@ -1647,6 +1647,41 @@
 .table-overflow td strong {
   font-weight: 550;
 }
+/* Purchase request window: bounded to the viewport, only the item list scrolls. */
+.request-dialog {
+  width: min(520px, calc(100vw - 28px));
+  max-width: min(520px, calc(100vw - 28px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow: hidden;
+}
+.request-dialog .product-form {
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+.request-dialog .product-form > label,
+.request-dialog .product-form > .search-input,
+.request-dialog .product-form > .order-total,
+.request-dialog .product-form > p,
+.request-dialog .product-form > div {
+  flex-shrink: 0;
+}
+.request-table {
+  flex: 1 1 auto;
+  min-height: 110px;
+  max-height: 320px;
+}
+.request-table th {
+  padding: 9px 12px;
+}
+.request-table td {
+  padding: 8px 12px;
+}
+
 .table-person {
   display: flex;
   align-items: center;
