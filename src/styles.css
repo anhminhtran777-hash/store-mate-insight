@@ -141,6 +141,126 @@
   --chart-area-top: oklch(0.51 0.12 240 / 0.24);
   --chart-area-bottom: oklch(0.51 0.12 240 / 0.015);
 }
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --background: oklch(0.19 0.015 260);
+  --foreground: oklch(0.92 0.01 250);
+  --card: oklch(0.24 0.018 260);
+  --primary: oklch(0.6 0.11 250);
+  --secondary: oklch(0.29 0.025 260);
+  --muted: oklch(0.26 0.012 260);
+  --muted-foreground: oklch(0.72 0.02 250);
+  --accent: oklch(0.33 0.04 255);
+  --border: oklch(0.36 0.02 260);
+  --sidebar: oklch(0.155 0.02 262);
+  --sidebar-foreground: oklch(0.78 0.02 250);
+  --sidebar-active: oklch(0.31 0.05 252);
+  --sidebar-hover: oklch(0.25 0.03 260);
+  --sidebar-border: oklch(0.29 0.026 260);
+  --sidebar-dim: oklch(0.64 0.03 250);
+  --destructive: oklch(0.73 0.17 28);
+  --warning-bg: oklch(0.3 0.04 65);
+  --warning-fg: oklch(0.81 0.12 65);
+  --brand-lime: oklch(0.82 0.1 220);
+  --beverage: oklch(0.76 0.105 244);
+  --beverage-bg: oklch(0.3 0.035 248);
+  --snack: oklch(0.81 0.12 67);
+  --snack-bg: oklch(0.32 0.038 75);
+  --dairy: oklch(0.77 0.1 290);
+  --dairy-bg: oklch(0.3 0.033 290);
+  --bakery: oklch(0.8 0.09 51);
+  --bakery-bg: oklch(0.31 0.03 58);
+  --produce: oklch(0.76 0.12 145);
+  --produce-bg: oklch(0.3 0.035 141);
+  --household: oklch(0.78 0.1 310);
+  --household-bg: oklch(0.3 0.035 308);
+  --chart-sold: oklch(0.72 0.09 250);
+  --chart-fill: oklch(0.7 0.09 250 / 0.09);
+  --chart-area-top: oklch(0.7 0.09 250 / 0.25);
+  --chart-area-bottom: oklch(0.7 0.09 250 / 0.02);
+}
+[data-theme="ember"] {
+  color-scheme: dark;
+  --background: oklch(0.2 0.012 50);
+  --foreground: oklch(0.93 0.012 70);
+  --card: oklch(0.25 0.015 50);
+  --primary: oklch(0.62 0.12 55);
+  --secondary: oklch(0.3 0.02 55);
+  --muted: oklch(0.27 0.01 50);
+  --muted-foreground: oklch(0.72 0.02 60);
+  --accent: oklch(0.33 0.03 55);
+  --border: oklch(0.37 0.02 55);
+  --sidebar: oklch(0.16 0.014 50);
+  --sidebar-foreground: oklch(0.78 0.02 65);
+  --sidebar-active: oklch(0.33 0.045 55);
+  --sidebar-hover: oklch(0.26 0.02 52);
+  --sidebar-border: oklch(0.3 0.02 54);
+  --sidebar-dim: oklch(0.64 0.03 62);
+  --destructive: oklch(0.73 0.17 28);
+  --warning-bg: oklch(0.31 0.035 65);
+  --warning-fg: oklch(0.81 0.12 65);
+  --brand-lime: oklch(0.84 0.12 75);
+  --beverage: oklch(0.76 0.105 244);
+  --beverage-bg: oklch(0.3 0.03 248);
+  --snack: oklch(0.81 0.12 67);
+  --snack-bg: oklch(0.33 0.04 70);
+  --dairy: oklch(0.77 0.1 270);
+  --dairy-bg: oklch(0.3 0.03 270);
+  --bakery: oklch(0.8 0.09 51);
+  --bakery-bg: oklch(0.32 0.035 55);
+  --produce: oklch(0.76 0.12 145);
+  --produce-bg: oklch(0.3 0.03 145);
+  --household: oklch(0.78 0.1 310);
+  --household-bg: oklch(0.3 0.03 308);
+  --chart-sold: oklch(0.74 0.09 65);
+  --chart-fill: oklch(0.72 0.09 60 / 0.09);
+  --chart-area-top: oklch(0.72 0.09 60 / 0.25);
+  --chart-area-bottom: oklch(0.72 0.09 60 / 0.02);
+}
+[data-theme="orchid"] {
+  color-scheme: light;
+  --background: oklch(0.975 0.006 300);
+  --foreground: oklch(0.29 0.03 300);
+  --primary: oklch(0.5 0.13 295);
+  --secondary: oklch(0.945 0.02 300);
+  --muted: oklch(0.962 0.006 300);
+  --muted-foreground: oklch(0.54 0.03 300);
+  --accent: oklch(0.94 0.025 300);
+  --border: oklch(0.91 0.015 300);
+  --sidebar: oklch(0.26 0.045 300);
+  --sidebar-foreground: oklch(0.81 0.02 300);
+  --sidebar-active: oklch(0.4 0.08 298);
+  --sidebar-hover: oklch(0.33 0.055 300);
+  --sidebar-border: oklch(0.38 0.04 300);
+  --sidebar-dim: oklch(0.69 0.03 300);
+  --brand-lime: oklch(0.85 0.08 290);
+  --chart-sold: oklch(0.73 0.08 300);
+  --chart-fill: oklch(0.5 0.12 300 / 0.07);
+  --chart-area-top: oklch(0.5 0.12 300 / 0.24);
+  --chart-area-bottom: oklch(0.5 0.12 300 / 0.015);
+}
+[data-theme="harvest"] {
+  color-scheme: light;
+  --background: oklch(0.972 0.008 75);
+  --foreground: oklch(0.29 0.02 55);
+  --primary: oklch(0.52 0.12 50);
+  --secondary: oklch(0.945 0.02 70);
+  --muted: oklch(0.962 0.007 75);
+  --muted-foreground: oklch(0.54 0.025 55);
+  --accent: oklch(0.94 0.02 70);
+  --border: oklch(0.905 0.014 75);
+  --sidebar: oklch(0.26 0.035 50);
+  --sidebar-foreground: oklch(0.81 0.02 70);
+  --sidebar-active: oklch(0.4 0.07 52);
+  --sidebar-hover: oklch(0.33 0.045 50);
+  --sidebar-border: oklch(0.38 0.032 52);
+  --sidebar-dim: oklch(0.69 0.028 65);
+  --brand-lime: oklch(0.85 0.09 85);
+  --chart-sold: oklch(0.73 0.08 55);
+  --chart-fill: oklch(0.52 0.11 50 / 0.07);
+  --chart-area-top: oklch(0.52 0.11 50 / 0.24);
+  --chart-area-bottom: oklch(0.52 0.11 50 / 0.015);
+}
 @layer base {
   * {
     border-color: var(--border);
