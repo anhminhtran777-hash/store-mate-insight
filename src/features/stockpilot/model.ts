@@ -31,6 +31,7 @@ export type Activity = {
   action: string;
   before?: number | undefined;
   after?: number | undefined;
+  amount?: number | undefined;
   time: string;
 };
 export type Order = {
