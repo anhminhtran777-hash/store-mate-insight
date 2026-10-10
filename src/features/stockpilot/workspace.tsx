@@ -46,7 +46,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useStock Genie } from "./store";
+import { useStockPilot } from "./store";
 import {
   categories,
   isLowStock,
@@ -70,6 +70,7 @@ import { Assistant } from "./assistant";
 import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
 import cola from "@/assets/cola.jpg";
+import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
 const navItems = [
   { name: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { name: "Inventory", to: "/", icon: Package },
@@ -91,9 +92,7 @@ const categoryIcons = {
 export function Logo() {
   return (
     <div className="logo">
-      <span className="logo-mark">
-        <Package size={23} strokeWidth={1.8} />
-      </span>
+      <img src={logoAsset.url} alt="Stock Genie logo" className="logo-image" width={40} height={40} />
       <span>
         Stock Genie<span className="logo-dot">.</span>
       </span>
@@ -101,7 +100,7 @@ export function Logo() {
   );
 }
 export function Workspace({ page = "Inventory" }: { page?: string }) {
-  const { state, user, storeName, pinned, setPinned, budget } = useStock Genie();
+  const { state, user, storeName, pinned, setPinned, budget } = useStockPilot();
   const committed = state.orders.reduce((n, o) => n + orderCost(state, o), 0);
   const refunds = state.activities
     .filter((a) => a.flow === "refund")
@@ -457,7 +456,7 @@ function Metric({
   );
 }
 function ProductRow({ product: p }: { product: Product }) {
-  const { selectedId, select } = useStock Genie();
+  const { selectedId, select } = useStockPilot();
   const Icon = categoryIcons[p.category];
   return (
     <Button
@@ -489,7 +488,7 @@ function ProductDetail({
 }: {
   open: (mode: Exclude<ModalMode, "create" | null>) => void;
 }) {
-  const { state, setState, selectedId, user } = useStock Genie();
+  const { state, setState, selectedId, user } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
   if (!p) return <div className="empty-state">Select a product.</div>;
   const Icon = categoryIcons[p.category];
@@ -702,7 +701,7 @@ function ProductModal({
   mode: ModalMode;
   close: () => void;
 }) {
-  const { state, setState, selectedId, select, user } = useStock Genie();
+  const { state, setState, selectedId, select, user } = useStockPilot();
   const p = state.products.find((p) => p.id === selectedId);
   const [error, setError] = useState("");
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -1011,7 +1010,7 @@ function Field({
   );
 }
 function Orders() {
-  const { state, setState, user } = useStock Genie();
+  const { state, setState, user } = useStockPilot();
   const [tab, setTab] = useState("All orders");
   const [confirmation, setConfirmation] = useState<"Invoice" | "Delivery note" | "Both">("Both");
   const [requestOpen, setRequestOpen] = useState(false);
@@ -1161,7 +1160,7 @@ function Orders() {
   );
 }
 function ActivityTable() {
-  const { state } = useStock Genie();
+  const { state } = useStockPilot();
   const [search, setSearch] = useState("");
   return (
     <section className="data-section">
@@ -1254,7 +1253,7 @@ function ActivityTable() {
   );
 }
 function Dashboard() {
-  const { state } = useStock Genie();
+  const { state } = useStockPilot();
   const low = state.products.filter(isLowStock);
   const first = state.products.find((p) => !p.archived);
   return (
@@ -1310,7 +1309,7 @@ function Dashboard() {
 }
 function StoreSettings() {
   const { storeName, setStoreName, user, setUser, pinned, setPinned, budget, setBudget } =
-    useStock Genie();
+    useStockPilot();
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<"profile" | "appearance">("profile");
   return (
@@ -1375,7 +1374,7 @@ function StoreSettings() {
   );
 }
 export function Login() {
-  const { setUser, storeName } = useStock Genie();
+  const { setUser, storeName } = useStockPilot();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
