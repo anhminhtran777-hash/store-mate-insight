@@ -3,7 +3,7 @@ import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
-import { checkout, findCashierItem, groupByBarcode, money, type BarcodeGroup, type CartLine, type StoreDocument } from "./model";
+import { checkout, findCashierItem, groupByBarcode, money, productBarcodes, type BarcodeGroup, type CartLine, type StoreDocument } from "./model";
 import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
 
@@ -193,6 +193,7 @@ export function DocumentDialog({
 
 const keyHelp: [string, string][] = [
   ["Code + Enter", "Add item by code, barcode, SKU or name (type on the keyboard)"],
+  ["Type digits", "Filters the item list by barcode, item code or SKU"],
   ["Number + *", "Set quantity for the next item"],
   ["+", "One more of the last item"],
   ["−", "Remove the last item"],
@@ -212,17 +213,28 @@ export function Cashier() {
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
   const groups = useMemo(() => groupByBarcode(allProducts), [allProducts]);
+  const codes = useMemo(() => {
+    const m = new Map<string, string>();
+    state.products.forEach((p, i) => m.set(p.id, String(i + 1)));
+    return m;
+  }, [state.products]);
+  /** Live item filter: whatever is typed on the numpad narrows the grid — names, SKUs, item codes and barcodes. */
   const visibleGroups = useMemo(() => {
     const q = buffer.trim().toLowerCase();
-    if (!q || !/[a-z]/.test(q)) return groups;
+    if (!q) return groups;
     return groups.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.size.toLowerCase().includes(q) ||
-        g.barcode.includes(q) ||
-        g.items.some((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)),
+        g.items.some(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.sku.toLowerCase().includes(q) ||
+            productBarcodes(p).some((b) => b.includes(q)) ||
+            codes.get(p.id) === q,
+        ),
     );
-  }, [groups, buffer]);
+  }, [groups, buffer, codes]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
@@ -336,7 +348,13 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {visibleGroups.length === 0 && <p className="muted">No items match "{buffer}".</p>}
+          {visibleGroups.length === 0 && (
+            <p className="muted">
+              {/^\d+$/.test(buffer.trim())
+                ? `No item code or barcode "${buffer}".`
+                : `No items match "${buffer}".`}
+            </p>
+          )}
           {visibleGroups.map((g) => (
             <button
               key={g.barcode}
