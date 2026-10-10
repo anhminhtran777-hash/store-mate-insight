@@ -22,6 +22,8 @@ type DemoContext = {
   setPinned: (b: boolean) => void;
   budget: number;
   setBudget: (n: number) => void;
+  notificationStatus: Record<string, "read" | "dismissed">;
+  setNotificationStatus: Dispatch<SetStateAction<Record<string, "read" | "dismissed">>>;
 };
 // Keep one context instance across hot reloads so provider and consumers always match.
 const globalKey = "__stockpilotContext__";
@@ -43,6 +45,7 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
   const [storeName, setStoreName] = useState("Corner Market");
   const [pinned, setPinned] = useState(true);
   const [budget, setBudget] = useState(1500);
+  const [notificationStatus, setNotificationStatus] = useState<Record<string, "read" | "dismissed">>({});
   return (
     <Context.Provider
       value={{
@@ -58,6 +61,8 @@ export function StockPilotProvider({ children }: { children: ReactNode }) {
         setPinned,
         budget,
         setBudget,
+        notificationStatus,
+        setNotificationStatus,
       }}
     >
       {children}

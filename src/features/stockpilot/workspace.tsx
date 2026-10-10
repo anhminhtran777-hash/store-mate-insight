@@ -21,7 +21,6 @@ import {
   Archive,
   ArrowUpRight,
   TriangleAlert,
-  Bell,
   SlidersHorizontal,
   Leaf,
   LogOut,
@@ -69,6 +68,7 @@ import { ProductCharts } from "./charts";
 import { Assistant } from "./assistant";
 import { Cashier, Documents } from "./cashier";
 import { AppearanceSettings } from "./appearance";
+import { NotificationCenter } from "./notifications";
 import cola from "@/assets/cola.jpg";
 import logoAsset from "@/assets/stock-genie-logo.png.asset.json";
 const navItems = [
@@ -115,7 +115,6 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
   const [modal, setModal] = useState<ModalMode>(
     null,
   );
-  const [notifications, setNotifications] = useState(false);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const active = state.products.filter((p) => !p.archived);
   const low = active.filter(isLowStock);
@@ -201,31 +200,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
               Demo workspace
             </span>
             <div className="notification-anchor">
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Notifications"
-                aria-label="Notifications"
-                onClick={() => setNotifications(!notifications)}
-              >
-                <Bell size={18} />
-                <i className="notification-dot" />
-              </Button>
-              {notifications && (
-                <div className="notification-panel">
-                  <strong>Stock alerts</strong>
-                  {low.length ? (
-                    low.map((p) => (
-                      <p key={p.id}>
-                        {p.name}
-                        <span>{p.stock} units remaining</span>
-                      </p>
-                    ))
-                  ) : (
-                    <p>All stock levels are healthy.</p>
-                  )}
-                </div>
-              )}
+              <NotificationCenter />
             </div>
             <div className="avatar small">AM</div>
           </div>
