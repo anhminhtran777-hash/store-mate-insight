@@ -193,6 +193,7 @@ export function DocumentDialog({
 
 const keyHelp: [string, string][] = [
   ["Code + Enter", "Add item by code, barcode, SKU or name (type on the keyboard)"],
+  ["Type digits", "Filters the item list by barcode, item code or SKU"],
   ["Number + *", "Set quantity for the next item"],
   ["+", "One more of the last item"],
   ["−", "Remove the last item"],
