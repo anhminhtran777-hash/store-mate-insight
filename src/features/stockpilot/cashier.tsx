@@ -120,7 +120,10 @@ export function DocumentDialog({
   close: () => void;
 }) {
   const { state, setState } = useStockPilot();
-  const doc = (state.documents ?? []).find((d) => d.id === initial?.id) ?? initial;
+  const [selected, setSelected] = useState<StoreDocument | null>(null);
+  useEffect(() => setSelected(null), [initial?.id]);
+  const active = selected ?? initial;
+  const doc = (state.documents ?? []).find((d) => d.id === active?.id) ?? active;
   const [email, setEmail] = useState("");
   const send = () => {
     if (!doc || !/^\S+@\S+\.\S+$/.test(email)) return;
@@ -377,7 +380,7 @@ export function Cashier() {
   );
 }
 
-const kindIcon = { Receipt, "Purchase order": FileText, "Delivery note": Truck };
+const kindIcon = { Receipt, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
@@ -386,7 +389,7 @@ export function Documents() {
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
-        {(["All", "Receipt", "Purchase order", "Delivery note"] as const).map((f) => (
+        {(["All", "Receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt"] as const).map((f) => (
           <Button
             key={f}
             variant="ghost"
@@ -395,7 +398,7 @@ export function Documents() {
             data-state={filter === f ? "on" : "off"}
             onClick={() => setFilter(f)}
           >
-            {f === "All" ? "All" : `${f}s`}
+            {f === "All" ? "All" : f === "Goods receipt" ? "Goods receipts" : `${f}s`}
           </Button>
         ))}
       </div>
