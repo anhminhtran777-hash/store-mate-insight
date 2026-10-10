@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck } from "lucide-react";
+import { Printer, Mail, Trash2, FileText, Receipt, Truck, PackageCheck, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useStockPilot } from "./store";
 import { checkout, money, type CartLine, type StoreDocument } from "./model";
+import { RefundDialog } from "./refund";
 import { InvoiceSheet } from "./invoice";
 
 /** Opens the browser print dialog for one document only. */
@@ -19,7 +20,8 @@ function printDocument() {
 
 export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   const { storeName, state } = useStockPilot();
-  const receipt = doc.kind === "Receipt";
+  const refund = doc.kind === "Refund receipt";
+  const receipt = doc.kind === "Receipt" || refund;
   const delivery = doc.kind === "Delivery note";
   const goods = doc.kind === "Goods receipt";
   const order = state.orders.find((o) => o.id === doc.reference);
@@ -30,11 +32,12 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
     <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
       <header className="receipt-heading">
         <strong>{storeName}</strong>
-        <span>SALES RECEIPT</span>
+        <span>{refund ? "REFUND RECEIPT" : "SALES RECEIPT"}</span>
         <span>{date}</span>
       </header>
       <dl className="receipt-details">
-        <div><dt>Receipt</dt><dd>{doc.reference}</dd></div>
+        <div><dt>{refund ? "Refund" : "Receipt"}</dt><dd>{doc.id}</dd></div>
+        {refund && <div><dt>Original receipt</dt><dd>{doc.reference}</dd></div>}
         <div><dt>Cashier</dt><dd>{doc.actor}</dd></div>
         <div><dt>Customer</dt><dd>{doc.party}</dd></div>
       </dl>
@@ -49,10 +52,19 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
       <footer className="receipt-footer">
         <div><span>{units} items</span><span>{money(doc.total)}</span></div>
         <div className="receipt-total"><strong>TOTAL</strong><strong>{money(doc.total)}</strong></div>
+        {refund ? <>
+          <div><span>Refunded to {doc.method ?? "original payment"}</span><span>−{money(doc.total)}</span></div>
+          <div><span>Reason</span><span>{doc.reason}</span></div>
+          {doc.note && <div><span>Note</span><span>{doc.note}</span></div>}
+          {doc.approvedBy && <div><span>Approved by</span><span>{doc.approvedBy}</span></div>}
+          <p>REFUND COMPLETE</p>
+          <p>Customer signature<br />______________________</p>
+        </> : <>
         <div><span>{doc.method ?? "Payment"}</span><span>{money(doc.paid ?? doc.total)}</span></div>
         <div><span>Change</span><span>{money(Math.max(0, (doc.paid ?? doc.total) - doc.total))}</span></div>
         <p>PAYMENT COMPLETE</p>
         <p>Thank you for shopping<br />at {storeName}!</p>
+        </>}
         <span className="receipt-reference">{doc.reference} · Keep for your records</span>
       </footer>
     </article>
@@ -135,13 +147,13 @@ export function DocumentDialog({
   };
   return (
     <Dialog open={!!doc} onOpenChange={(o) => !o && close()}>
-      <DialogContent className={`doc-dialog print:translate-x-0 print:translate-y-0 print:transform-none print:animate-none ${doc?.kind === "Receipt" ? "doc-dialog-receipt" : "doc-dialog-business"}`}>
+      <DialogContent className={`doc-dialog print:translate-x-0 print:translate-y-0 print:transform-none print:animate-none ${doc?.kind === "Receipt" || doc?.kind === "Refund receipt" ? "doc-dialog-receipt" : "doc-dialog-business"}`}>
         <DialogHeader>
           <DialogTitle>{doc?.kind}</DialogTitle>
           <DialogDescription>{doc?.reference}</DialogDescription>
         </DialogHeader>
         {doc && <div className="doc-preview"><DocumentSheet doc={doc} /></div>}
-        {doc && doc.kind !== "Receipt" && <div className="doc-related" aria-label="Related documents">{(state.documents ?? []).filter((d) => d.reference === doc.reference && d.id !== doc.id).map((d) => <Button key={d.id} variant="outline" size="sm" onClick={() => setSelected(d)}><FileText />{d.kind === "Goods receipt" ? "Goods-received receipt" : d.kind}</Button>)}</div>}
+        {doc && <div className="doc-related" aria-label="Related documents">{(state.documents ?? []).filter((d) => d.reference === doc.reference && d.id !== doc.id).map((d) => <Button key={d.id} variant="outline" size="sm" onClick={() => setSelected(d)}><FileText />{d.kind === "Goods receipt" ? "Goods-received receipt" : d.kind}</Button>)}</div>}
         {doc && (
           <div className="doc-actions">
             <Button onClick={printDocument}>
@@ -196,6 +208,7 @@ export function Cashier() {
   const [qty, setQty] = useState(1);
   const [message, setMessage] = useState("Type an item code and press Enter.");
   const [doc, setDoc] = useState<StoreDocument | null>(null);
+  const [refundOpen, setRefundOpen] = useState(false);
   const counter = useRef(1);
   const products = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
@@ -368,6 +381,9 @@ export function Cashier() {
             Cash (exact/rounded)
           </Button>
         </div>
+        <Button variant="outline" onClick={() => setRefundOpen(true)}>
+          <Undo2 /> Refund an item
+        </Button>
         <dl className="numpad-help">
           {keyHelp.map(([k, v]) => (
             <div key={k}>
@@ -378,11 +394,12 @@ export function Cashier() {
         </dl>
       </section>
       <DocumentDialog doc={doc} close={() => setDoc(null)} />
+      <RefundDialog open={refundOpen} onOpenChange={setRefundOpen} onDone={(d) => { setRefundOpen(false); setDoc(d); setMessage(`Refunded ${money(d.total)} to ${d.method ?? "customer"}.`); }} />
     </div>
   );
 }
 
-const kindIcon = { Receipt, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck };
+const kindIcon = { Receipt, "Refund receipt": Undo2, "Purchase order": FileText, "Delivery note": Truck, Invoice: FileText, "Goods receipt": PackageCheck };
 export function Documents() {
   const { state } = useStockPilot();
   const [filter, setFilter] = useState<"All" | StoreDocument["kind"]>("All");
@@ -391,7 +408,7 @@ export function Documents() {
   return (
     <section className="documents">
       <div className="chart-period-switch" role="group" aria-label="Document type">
-        {(["All", "Receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt"] as const).map((f) => (
+        {(["All", "Receipt", "Refund receipt", "Purchase order", "Invoice", "Delivery note", "Goods receipt"] as const).map((f) => (
           <Button
             key={f}
             variant="ghost"
