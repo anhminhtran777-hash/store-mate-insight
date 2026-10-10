@@ -127,6 +127,8 @@ const existingDemoProducts: Product[] = rows.map((r, i) => ({
   barcode: ean13(`500123${String(100000 + i * 7919).slice(-6)}`),
   // Coca-Cola Original also scans under its manufacturer barcode.
   barcodes: i === 0 ? ["5449000000996"] : undefined,
+  // Demo items can be wholesaled by the stack; beverages ship in bigger cases.
+  caseSize: r[2] === "Beverages" ? 24 : 12,
   history:
     i === 0
       ? [36, 62, 54, 82, 68, 48]
