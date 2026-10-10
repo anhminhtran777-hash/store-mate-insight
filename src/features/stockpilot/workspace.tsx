@@ -108,8 +108,7 @@ export function Workspace({ page = "Inventory" }: { page?: string }) {
     .reduce((n, a) => n + (a.amount ?? 0), 0);
   const budgetLeft = budget - committed + refunds;
   const revenue = state.activities
-    .filter((a) => a.flow === "in")
-    .reduce((n, a) => n + (a.amount ?? 0), 0);
+    .reduce((n, a) => n + (a.flow === "in" ? (a.amount ?? 0) : a.flow === "customer-refund" ? -(a.amount ?? 0) : 0), 0);
   const [hover, setHover] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All categories");
@@ -1209,8 +1208,8 @@ function ActivityTable() {
                    </td>
                     <td>
                       {a.amount !== undefined ? (
-                        <span className={a.flow === "out" ? "negative" : "positive"}>
-                          {a.flow === "out" ? "−" : "+"}
+                        <span className={a.flow === "out" || a.flow === "customer-refund" ? "negative" : "positive"}>
+                          {a.flow === "out" || a.flow === "customer-refund" ? "−" : "+"}
                           {money(a.amount)}
                         </span>
                       ) : (
