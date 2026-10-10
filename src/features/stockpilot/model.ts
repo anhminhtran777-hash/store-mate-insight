@@ -35,7 +35,7 @@ export type Activity = {
   before?: number | undefined;
   after?: number | undefined;
   amount?: number | undefined;
-  flow?: "in" | "out" | "refund" | undefined;
+  flow?: "in" | "out" | "refund" | "customer-refund" | undefined;
   reason?: string | undefined;
   time: string;
 };
@@ -46,10 +46,10 @@ export type Order = {
   date: string;
   lines: { productId: string; quantity: number }[];
 };
-export type DocLine = { name: string; quantity: number; unit: number };
+export type DocLine = { name: string; quantity: number; unit: number; productId?: string };
 export type StoreDocument = {
   id: string;
-  kind: "Receipt" | "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt";
+  kind: "Receipt" | "Refund receipt" | "Purchase order" | "Delivery note" | "Invoice" | "Goods receipt";
   reference: string;
   party: string;
   actor: string;
@@ -62,6 +62,9 @@ export type StoreDocument = {
   number?: string;
   relatedIds?: string[];
   demo?: boolean;
+  reason?: string;
+  note?: string;
+  approvedBy?: string;
 };
 export type StoreState = {
   products: Product[];
@@ -411,7 +414,7 @@ export function checkout(
     const p = state.products.find((p) => p.id === c.productId);
     if (!p || p.archived || !Number.isInteger(c.quantity) || c.quantity <= 0 || c.quantity > p.stock)
       return { state };
-    lines.push({ name: p.name, quantity: c.quantity, unit: p.price });
+    lines.push({ name: p.name, quantity: c.quantity, unit: p.price, productId: p.id });
   }
   const total = lines.reduce((n, l) => n + l.quantity * l.unit, 0);
   if (!lines.length || (method === "Cash" && (paid ?? 0) < total - 0.001)) return { state };
@@ -488,5 +491,101 @@ export function receiveOrder(
       },
       ...updated.activities,
     ],
+  };
+}
+
+export const customerRefundReasons = ["Defective item", "Changed mind", "Wrong item sold", "Expired product", "Overcharged", "Damaged packaging"] as const;
+export const refundConditions = ["Resellable", "Damaged"] as const;
+/** Refunds above this amount need a manager's name (common store policy). */
+export const refundApprovalLimit = 20;
+export const refundWindowDays = 30;
+export type RefundLine = { productId: string; quantity: number };
+
+/** Units of a product already refunded against a receipt. */
+export function refundedQuantity(state: StoreState, receiptId: string, productId: string): number {
+  return (state.documents ?? [])
+    .filter((d) => d.kind === "Refund receipt" && d.reference === receiptId)
+    .flatMap((d) => d.lines)
+    .filter((l) => l.productId === productId)
+    .reduce((n, l) => n + l.quantity, 0);
+}
+
+/**
+ * Refunds items from a sales receipt to the original payment method. Resellable units return to stock;
+ * damaged ones are logged as written off. Rejects over-refunds, expired receipts, missing reason, or
+ * missing manager approval above the limit.
+ */
+export function refundSale(
+  state: StoreState,
+  input: {
+    receiptId: string;
+    lines: RefundLine[];
+    reason: string;
+    note: string;
+    condition: (typeof refundConditions)[number];
+    approvedBy?: string;
+    actor: string;
+    time: string;
+    refundNo: string;
+  },
+): { state: StoreState; refund?: StoreDocument; error?: string } {
+  const receipt = (state.documents ?? []).find((d) => d.id === input.receiptId && d.kind === "Receipt");
+  if (!receipt) return { state, error: "Receipt not found." };
+  if (Date.parse(input.time) - Date.parse(receipt.time) > refundWindowDays * 86400000)
+    return { state, error: `Refunds are only accepted within ${refundWindowDays} days.` };
+  if (!input.reason.trim()) return { state, error: "Choose a reason for the refund." };
+  const lines: DocLine[] = [];
+  for (const r of input.lines) {
+    const sold = receipt.lines.find((l) => l.productId === r.productId);
+    if (!sold || !Number.isInteger(r.quantity) || r.quantity <= 0) return { state, error: "Invalid refund item." };
+    if (r.quantity > sold.quantity - refundedQuantity(state, receipt.id, r.productId))
+      return { state, error: `Only ${sold.quantity - refundedQuantity(state, receipt.id, r.productId)} × ${sold.name} can still be refunded.` };
+    lines.push({ name: sold.name, quantity: r.quantity, unit: sold.unit, productId: r.productId });
+  }
+  if (!lines.length) return { state, error: "Select at least one item to refund." };
+  const total = lines.reduce((n, l) => n + l.quantity * l.unit, 0);
+  if (total > refundApprovalLimit && !input.approvedBy?.trim())
+    return { state, error: `Refunds over ${money(refundApprovalLimit)} need manager approval.` };
+  const restock = input.condition === "Resellable";
+  const reasonText = [input.reason, input.condition === "Damaged" ? "written off" : "returned to shelf", input.note.trim()]
+    .filter(Boolean)
+    .join(" · ");
+  const products = state.products.map((p) => {
+    const l = lines.find((x) => x.productId === p.id);
+    return l && restock ? { ...p, stock: p.stock + l.quantity, history: p.history.map((h, i) => (i === 5 ? h + l.quantity : h)) } : p;
+  });
+  const activities: Activity[] = lines.map((l, i) => {
+    const p = state.products.find((x) => x.id === l.productId);
+    return {
+      id: `${input.refundNo}-${i}`,
+      product: l.name,
+      actor: input.actor,
+      action: `Customer refund (${receipt.id})`,
+      before: p?.stock,
+      after: p ? p.stock + (restock ? l.quantity : 0) : undefined,
+      amount: l.quantity * l.unit,
+      flow: "customer-refund",
+      reason: reasonText,
+      time: input.time,
+    };
+  });
+  const refund: StoreDocument = {
+    id: input.refundNo,
+    kind: "Refund receipt",
+    reference: receipt.id,
+    party: receipt.party,
+    actor: input.actor,
+    time: input.time,
+    lines,
+    total,
+    paid: total,
+    method: receipt.method,
+    reason: input.reason,
+    note: input.note.trim() || undefined,
+    approvedBy: input.approvedBy?.trim() || undefined,
+  } as StoreDocument;
+  return {
+    state: { ...state, products, activities: [...activities, ...state.activities], documents: [refund, ...(state.documents ?? [])] },
+    refund,
   };
 }
