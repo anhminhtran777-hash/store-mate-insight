@@ -512,7 +512,7 @@ export function Documents() {
 function AccountingInvoiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { setState, user } = useStockPilot();
   const [error, setError] = useState("");
-  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+  const submit = (e: import("react").FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const get = (k: string) => String(f.get(k) ?? "").trim();
