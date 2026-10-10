@@ -64,6 +64,8 @@ import {
   createPurchaseRequest,
   stackUnits,
   type Product,
+  canAccessPage,
+  demoProfiles,
 } from "./model";
 import { ProductCharts } from "./charts";
 import { Assistant } from "./assistant";
