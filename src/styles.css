@@ -2490,3 +2490,12 @@
   body.printing-doc .doc-business thead { display: table-header-group; }
   body.printing-doc .doc-business tr, body.printing-doc .business-summary, body.printing-doc .business-footer { break-inside: avoid; }
 }
+
+/* Wholesale stack picker in the purchase request dialog */
+.stack-picker { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.stack-layouts { display: flex; gap: 0.25rem; }
+.stack-layout {
+  border: 1px solid var(--border); border-radius: 6px; background: var(--background);
+  color: var(--muted-foreground); font-size: 0.7rem; padding: 0.15rem 0.4rem; cursor: pointer;
+}
+.stack-layout:hover { border-color: var(--primary); color: var(--primary); }
