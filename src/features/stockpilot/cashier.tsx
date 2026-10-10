@@ -278,7 +278,9 @@ export function Cashier() {
       const found = findCashierItem(allProducts, buffer);
       if (found === "many") return setMessage(`Several items match "${buffer}" — type more characters.`);
       if (!found) return setMessage(`No item matches "${buffer}".`);
-      add(found.id, qty);
+      const group = groups.find((g) => g.barcode === found.barcode);
+      if (group) addGroup(group, qty);
+      else add(found.id, qty);
       setQty(1);
       return;
     }
@@ -323,20 +325,21 @@ export function Cashier() {
       <section className="cashier-items">
         <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {allProducts.map((p) => (
+          {groups.map((g) => (
             <button
-              key={p.id}
-              className={`cashier-item category-${p.category.toLowerCase()}`}
-              disabled={p.stock === 0}
-              onClick={() => add(p.id, 1)}
+              key={g.barcode}
+              className={`cashier-item category-${g.category.toLowerCase()}`}
+              disabled={g.stock === 0}
+              onClick={() => addGroup(g, 1)}
             >
-              <span className="cashier-code">{code(p.id)}</span>
-              <span>{p.emoji}</span>
-               <strong>{p.name}</strong>
-               <small>{p.size}</small>
+              <span className="cashier-code">{code(g.items[0]?.id ?? "")}</span>
+              <span>{g.emoji}</span>
+               <strong>{g.name}</strong>
+               <small>{g.size}</small>
               <small>
-                {money(p.price)} · {p.stock} left
+                {money(g.price)} · {g.stock} left
               </small>
+              <small className="cashier-barcode">⌗ {g.barcode}</small>
             </button>
           ))}
         </div>
