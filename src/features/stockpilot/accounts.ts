@@ -15,7 +15,8 @@ export function findAccount(username: string, password: string): Account | undef
 
 const CURRENT = "stockgenie:current-account";
 const prefsKey = (u: string) => `stockgenie:prefs:${u}`;
-const stateKey = (u: string) => `stockgenie:state:${u}`;
+const SHARED_STATE = "stockgenie:state:shared";
+const legacyStateKey = (u: string) => `stockgenie:state:${u}`;
 const EVENT = "stockgenie-prefs";
 const hasStorage = () => typeof window !== "undefined" && !!window.localStorage;
 
