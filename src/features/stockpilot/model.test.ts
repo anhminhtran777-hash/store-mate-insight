@@ -19,7 +19,7 @@ describe("Bulgarian Coca-Cola supplier catalogue", () => {
     const products = initialState.products.filter((p) => p.supplier === "Coca-Cola Distribution");
     expect(products.some((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "330 ml can")).toBe(true);
     expect(products.some((p) => p.name === "Coca-Cola Zero Sugar" && p.size === "1.5 L bottle")).toBe(true);
-    for (const brand of ["Fanta", "Sprite", "Schweppes", "Cappy", "Fuzetea", "Bankya", "Rosa", "Monster", "Powerade"]) expect(products.some((p) => p.name.startsWith(brand))).toBe(true);
+    for (const brand of ["Fanta", "Sprite", "Schweppes", "Cappy", "Fuzetea", "Bankya", "Rosa", "Monster", "Powerade", "Three Cents", "Costa Coffee", "Caffè Vergnano", "Jack Daniel", "Finlandia", "Bacardi", "Martini", "Bombay Sapphire", "Grey Goose", "Patron", "Jägermeister", "The Macallan", "Highland Park", "Gin Mare"]) expect(products.some((p) => p.name.startsWith(brand))).toBe(true);
     expect(new Set(initialState.products.map((p) => p.id)).size).toBe(initialState.products.length);
     expect(new Set(initialState.products.map((p) => p.barcode)).size).toBe(initialState.products.length);
     for (const p of products.filter((p) => p.id.startsWith("cch-bg-"))) {
