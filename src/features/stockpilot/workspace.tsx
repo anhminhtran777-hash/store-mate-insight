@@ -1131,6 +1131,8 @@ function StoreSettings() {
           const data = new FormData(e.currentTarget);
           setStoreName(String(data.get("store")));
           setUser(String(data.get("manager")));
+          const b = Number(data.get("budget"));
+          if (Number.isFinite(b) && b >= 0) setBudget(b);
           setSaved(true);
         }}
       >
