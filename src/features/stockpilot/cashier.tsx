@@ -27,7 +27,7 @@ export function DocumentSheet({ doc }: { doc: StoreDocument }) {
   const order = state.orders.find((o) => o.id === doc.reference);
   const date = new Date(doc.time).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   const units = doc.lines.reduce((n, line) => n + line.quantity, 0);
-  if (doc.kind === "Invoice" || doc.kind === "Accounting invoice") return <InvoiceSheet doc={doc} buyer={storeName} />;
+  if (doc.kind === "Invoice" || doc.kind === "Accounting invoice" || doc.kind === "Credit memo") return <InvoiceSheet doc={doc} buyer={storeName} />;
   if (receipt) return (
     <article className="doc-sheet doc-receipt" aria-label="Sales receipt">
       <header className="receipt-heading">

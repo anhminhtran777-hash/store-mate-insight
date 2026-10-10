@@ -4,9 +4,10 @@ import { money, type StoreDocument } from "./model";
 export function InvoiceSheet({ doc, buyer }: { doc: StoreDocument; buyer: string }) {
   const date = new Date(doc.time).toLocaleDateString("en-GB");
   const acc = doc.kind === "Accounting invoice";
+  const credit = doc.kind === "Credit memo";
   return (
-    <article className="doc-sheet doc-business doc-invoice" aria-label="Supplier invoice">
-      <p className="invoice-demo">{acc ? "ACCOUNTING ONLY · NOT LINKED TO DELIVERED STOCK" : "SIMULATED SUPPLIER DOCUMENT · NOT VALID FOR TAX OR PAYMENT"}</p>
+    <article className="doc-sheet doc-business doc-invoice" aria-label={credit ? "Credit memo" : "Supplier invoice"}>
+      <p className="invoice-demo">{acc || credit ? "ACCOUNTING ONLY · NOT LINKED TO DELIVERED STOCK" : "SIMULATED SUPPLIER DOCUMENT · NOT VALID FOR TAX OR PAYMENT"}</p>
       <header className="invoice-heading">
         <div><strong>Recipient / buyer</strong><span>{buyer}</span><span>Address: Not recorded</span><span>Company ID: Not recorded</span><span>VAT ID: Not recorded</span><span>Representative: Not recorded</span></div>
         <h2>INVOICE<br /><span>ORIGINAL</span></h2>
