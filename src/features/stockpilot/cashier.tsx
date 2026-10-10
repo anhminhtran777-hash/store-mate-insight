@@ -209,16 +209,8 @@ export function Cashier() {
   const [message, setMessage] = useState("Type an item code and press Enter.");
   const [doc, setDoc] = useState<StoreDocument | null>(null);
   const [refundOpen, setRefundOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const counter = useRef(1);
   const allProducts = useMemo(() => state.products.filter((p) => !p.archived), [state.products]);
-  const products = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return allProducts;
-    return allProducts.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.barcode?.includes(q) || p.sku.toLowerCase().includes(q),
-    );
-  }, [allProducts, search]);
   const code = (id: string) => String(state.products.findIndex((p) => p.id === id) + 1);
   const total = cart.reduce(
     (n, c) => n + c.quantity * (state.products.find((p) => p.id === c.productId)?.price ?? 0),
@@ -320,21 +312,9 @@ export function Cashier() {
   return (
     <div className="cashier">
       <section className="cashier-items">
-        <div className="cashier-search">
-          <h3>Items</h3>
-          <input
-            type="search"
-            placeholder="Search by name, barcode or code…"
-            aria-label="Search items by name, barcode or code"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        {search.trim() && !products.length && (
-          <p className="text-sm text-muted-foreground py-6">No items match "{search.trim()}".</p>
-        )}
+        <h3 className="cashier-heading">Items</h3>
         <div className="cashier-grid">
-          {products.map((p) => (
+          {allProducts.map((p) => (
             <button
               key={p.id}
               className={`cashier-item category-${p.category.toLowerCase()}`}
