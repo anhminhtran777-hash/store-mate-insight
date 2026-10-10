@@ -108,6 +108,8 @@ export const initialState: StoreState = {
       action: "Stock sold",
       before: 60,
       after: 48,
+      amount: 12 * 1.79,
+      flow: "in",
       time: "2026-10-10T09:12:00Z",
     },
     {
@@ -117,6 +119,8 @@ export const initialState: StoreState = {
       action: "Stock sold",
       before: 18,
       after: 8,
+      amount: 10 * 1.89,
+      flow: "in",
       time: "2026-10-10T08:45:00Z",
     },
     {
@@ -126,6 +130,8 @@ export const initialState: StoreState = {
       action: "Stock received",
       before: 24,
       after: 72,
+      amount: 48 * 0.55,
+      flow: "out",
       time: "2026-10-10T08:30:00Z",
     },
     {
@@ -135,6 +141,8 @@ export const initialState: StoreState = {
       action: "Stock sold",
       before: 20,
       after: 12,
+      amount: 8 * 1.29,
+      flow: "in",
       time: "2026-10-09T17:20:00Z",
     },
   ],
